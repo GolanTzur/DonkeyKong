@@ -479,6 +479,7 @@ int main()
 
 					if (_kbhit() && descent == 0) //Confirms the player is not falling down while hitting the button
 					{
+
 						keyPressed = _getch();
 
 						switch (keyPressed)
@@ -597,6 +598,52 @@ int main()
 						case GameConfig::ESC:
 							escPressed = true;
 							break;
+						case 'p':
+						case 'P':
+							if (climb == 0&&mario.getHammer()!=GameConfig::STAY) //Mario is able to use the hammer
+							{
+								GameConfig::ARROWKEYS dirhammer = mario.getHammer();
+								if (dirhammer == GameConfig::ARROWKEYS::RIGHT)
+								{
+									for (int i=0;i<barrels.size();i++)
+									{
+										if (barrels.at(i).getPos().getX() > mario.getPos().getX()&&mario.getPos().calculateDistance(barrels.at(i).getPos()) <= 2)
+										{
+											barrels.erase(barrels.begin() + i);
+											i--;
+										}
+									}
+									for (int i = 0;i < level.getGhosts().size();i++)
+									{
+										if (level.getGhosts().at(i).getPos().getX() > mario.getPos().getX() && mario.getPos().calculateDistance(level.getGhosts().at(i).getPos()) <= 2)
+										{
+											level.getGhosts().erase(level.getGhosts().begin() + i);
+											i--;
+										}
+									}
+								}
+								else //Hammer operates towards left
+								{
+		                  
+									for (int i = 0;i < barrels.size();i++)
+									{
+										if (barrels.at(i).getPos().getX() < mario.getPos().getX() && mario.getPos().calculateDistance(barrels.at(i).getPos()) <= 2)
+										{
+											barrels.erase(barrels.begin() + i);
+											i--;
+										}
+									}
+									for (int i = 0;i < level.getGhosts().size();i++)
+									{
+										if (level.getGhosts().at(i).getPos().getX() < mario.getPos().getX() && mario.getPos().calculateDistance(level.getGhosts().at(i).getPos()) <= 2)
+										{
+											level.getGhosts().erase(level.getGhosts().begin() + i);
+											i--;
+										}
+									}
+								}
+								break;
+							}
 						default:
 							break;
 						}
@@ -749,8 +796,12 @@ int main()
 					else if (descent == 0)
 						mario.setDir(GameConfig::ARROWKEYS::STAY);
 
-					if(mario.getHammer()== GameConfig::ARROWKEYS::LEFT)
-					mario.setHammer(GameConfig::ARROWKEYS::RIGHT);
+					if (mario.getHammer() == GameConfig::ARROWKEYS::LEFT)
+					{
+						mario.setHammer(GameConfig::ARROWKEYS::RIGHT);
+						gotoxy(mario.getPos().getX() - 1, mario.getPos().getY() - 1);
+						cout << 'Q';
+					}
 
 				}
 				if (mario.getPos().getX() > GameConfig::MIN_X + GameConfig::WIDTH - 2)// Reached Right Bound
@@ -775,7 +826,12 @@ int main()
 						mario.setDir(GameConfig::ARROWKEYS::STAY);
 
 					if (mario.getHammer() == GameConfig::ARROWKEYS::RIGHT)
-					mario.setHammer(GameConfig::ARROWKEYS::LEFT);
+					{
+						mario.setHammer(GameConfig::ARROWKEYS::LEFT);
+						gotoxy(mario.getPos().getX() + 1, mario.getPos().getY() - 1);
+						cout << 'Q';
+					}
+					
 				}
 				if (mario.getPos().getY() >= GameConfig::MIN_Y + GameConfig::HEIGHT - 1) //Mario Fell Down
 				{
@@ -826,7 +882,9 @@ int main()
 					}
 						
 				}
+
 				mario.move();
+
 				if (marioHitsBarrel(barrels, mario) || marioHitsGhost(level.getGhosts(), mario))
 				{
 					//mario hit a barrel / ghost
@@ -841,11 +899,17 @@ int main()
 
 				level.printLadders();
 				printLives(lives);
-				mario.draw();
+
+				if (climb > 0)
+					mario.draw(true);
+				else
+					mario.draw();
+
 				for (auto& barel : barrels) //Draw the barrels
 					barel.draw();
 				for (auto& ghost : level.getGhosts()) //draw the ghosts
 					ghost.draw();
+
 				hammer.draw();
 
 				Sleep(INTERVAL);
@@ -861,7 +925,9 @@ int main()
 				//Print ' ' after mario
 				gotoxy(mario.getPos().getX(), mario.getPos().getY());
 				cout << " ";
-				if (mario.getHammer() != GameConfig::ARROWKEYS::STAY&&mario.getDir()!= GameConfig::ARROWKEYS::STAY)
+
+				//Print ' ' after the hammer if mario owns it
+				if (mario.getHammer() != GameConfig::ARROWKEYS::STAY &&climb==0&&(mario.getDir() == GameConfig::STAY || mario.getDir() == GameConfig::LEFT || mario.getDir() == GameConfig::RIGHT))
 				{
 					if (mario.getHammer() == GameConfig::ARROWKEYS::RIGHT)
 					{

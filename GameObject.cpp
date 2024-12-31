@@ -62,16 +62,14 @@ void GameObject::setDir(GameConfig::ARROWKEYS newdir)
 	}
 	dir = newdir;
 }
-void GameObject::draw()
+void GameObject::draw(bool&& climbmode) //We wouldnt like to show the hammer while climbing a ladder
 {
 	gotoxy(pos.getX(), pos.getY());
 	cout << representation;
-	static GameConfig::ARROWKEYS lastdir=GameConfig::STAY;
-    
-
-	if (dirHammer!=GameConfig::ARROWKEYS::STAY)
+	
+	if (dirHammer!=GameConfig::ARROWKEYS::STAY&&!climbmode&&(dir==GameConfig::STAY|| dir == GameConfig::LEFT|| dir == GameConfig::RIGHT))
 	{
-		
+
 		if (dirHammer == GameConfig::ARROWKEYS::LEFT)
 		{
 			gotoxy(pos.getX() - 1, pos.getY() - 1);

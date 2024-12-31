@@ -21,7 +21,7 @@ public:
 	void setDir(GameConfig::ARROWKEYS newdir);
 	void setHammer(GameConfig::ARROWKEYS havinghammer) { dirHammer = havinghammer; };
 	GameConfig::ARROWKEYS getHammer() { return dirHammer; };
-	void draw();
+	void draw(bool&& climbmode = false);
 	void move();
 	int getCurrentFloor() { return (GameConfig::NUMFLOORS)-((pos.getY() - (GameConfig::MIN_Y - 1)) / GameConfig::FLOORDIFF); }
 };
