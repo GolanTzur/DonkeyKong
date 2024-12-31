@@ -11,6 +11,7 @@ GameObject::GameObject(Point startpos, char representation)
 	this->dir = GameConfig::ARROWKEYS::STAY;
 	this->pos = startpos;
 	this->representation = representation;
+	dirHammer = GameConfig::ARROWKEYS::STAY;
 }
 
 void GameObject::move()
@@ -50,9 +51,39 @@ void GameObject::move()
 		break;
 	}
 }
+void GameObject::setDir(GameConfig::ARROWKEYS newdir)
+{
+	if (dirHammer != GameConfig::ARROWKEYS::STAY)
+	{
+		if (newdir == GameConfig::ARROWKEYS::LEFT)
+			dirHammer = GameConfig::ARROWKEYS::LEFT;
+		if (newdir == GameConfig::ARROWKEYS::RIGHT)
+			dirHammer = GameConfig::ARROWKEYS::RIGHT;
+	}
+	dir = newdir;
+}
 void GameObject::draw()
 {
 	gotoxy(pos.getX(), pos.getY());
 	cout << representation;
+	static GameConfig::ARROWKEYS lastdir=GameConfig::STAY;
+    
+
+	if (dirHammer!=GameConfig::ARROWKEYS::STAY)
+	{
+		
+		if (dirHammer == GameConfig::ARROWKEYS::LEFT)
+		{
+			gotoxy(pos.getX() - 1, pos.getY() - 1);
+			cout << 'P';
+			
+		}
+		if (dirHammer == GameConfig::ARROWKEYS::RIGHT)
+		{
+			gotoxy(pos.getX() + 1, pos.getY() - 1);
+			cout << 'P';
+		}
+			
+	}
 }
 

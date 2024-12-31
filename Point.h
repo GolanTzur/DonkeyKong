@@ -14,5 +14,5 @@ public:
 	int getY() { return y; };
 	void setX(int x) { this->x = x; };
 	void setY(int y) { this->y = y; };
-	bool operator ==(Point other) { return x == other.x && y == other.y; };
+	bool operator ==(const Point& other) { return x == other.x && y == other.y; };
 };

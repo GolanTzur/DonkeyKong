@@ -1,4 +1,5 @@
 #include "GameObject.h"
+#include "Hammer.h"
 #include <conio.h>
 #include <Windows.h>
 #include <iostream>
@@ -387,7 +388,7 @@ void restart(GameObject* mario, Point marioStartPos, vector<Barrel>* barrels, in
 	//Mario initial position
 	mario->setPos(marioStartPos.getX(), marioStartPos.getY());
 	mario->setDir(GameConfig::STAY);
-
+	mario->setHammer(GameConfig::ARROWKEYS::STAY);
 	//Delete all barrels
 	barrels->clear();
 
@@ -439,6 +440,9 @@ int main()
 			GameObject mario(level.getstartPosMario(), '@');
 			GameObject pauline(level.getstartPosPauline(), '$');
 			GameObject donkeyKong(level.getstartPosDonkeyKong(), '&');
+			Hammer hammer(level.getPosHammer());
+
+			
 
 			donkeyKong.draw();
 			pauline.draw();
@@ -745,6 +749,9 @@ int main()
 					else if (descent == 0)
 						mario.setDir(GameConfig::ARROWKEYS::STAY);
 
+					if(mario.getHammer()== GameConfig::ARROWKEYS::LEFT)
+					mario.setHammer(GameConfig::ARROWKEYS::RIGHT);
+
 				}
 				if (mario.getPos().getX() > GameConfig::MIN_X + GameConfig::WIDTH - 2)// Reached Right Bound
 				{
@@ -766,6 +773,9 @@ int main()
 						mario.setDir(GameConfig::LEFT);
 					else if (descent == 0)
 						mario.setDir(GameConfig::ARROWKEYS::STAY);
+
+					if (mario.getHammer() == GameConfig::ARROWKEYS::RIGHT)
+					mario.setHammer(GameConfig::ARROWKEYS::LEFT);
 				}
 				if (mario.getPos().getY() >= GameConfig::MIN_Y + GameConfig::HEIGHT - 1) //Mario Fell Down
 				{
@@ -823,13 +833,20 @@ int main()
 					lives--;
 					restart(&mario, level.getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed);
 				}
+				else if (mario.getPos() == hammer.getPos()&&hammer.getIsVisible()) //mario gets the hammer
+				{
+					hammer.setIsVisible(false);
+					mario.setHammer(mario.getDir());
+				}
+
 				level.printLadders();
 				printLives(lives);
 				mario.draw();
 				for (auto& barel : barrels) //Draw the barrels
 					barel.draw();
-				for (auto& ghost : level.getGhosts()) //Move the ghosts
+				for (auto& ghost : level.getGhosts()) //draw the ghosts
 					ghost.draw();
+				hammer.draw();
 
 				Sleep(INTERVAL);
 
@@ -844,6 +861,21 @@ int main()
 				//Print ' ' after mario
 				gotoxy(mario.getPos().getX(), mario.getPos().getY());
 				cout << " ";
+				if (mario.getHammer() != GameConfig::ARROWKEYS::STAY&&mario.getDir()!= GameConfig::ARROWKEYS::STAY)
+				{
+					if (mario.getHammer() == GameConfig::ARROWKEYS::RIGHT)
+					{
+						gotoxy(mario.getPos().getX() + 1, mario.getPos().getY() - 1);
+						cout << " ";
+					}
+					else
+					{
+						gotoxy(mario.getPos().getX() - 1, mario.getPos().getY() - 1);
+						cout << " ";
+					}
+
+				}
+				
 				//Print ' ' after the barrels
 				printBarrelTraces(barrels);
 				printGhostsTraces(level.getGhosts());

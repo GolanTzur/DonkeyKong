@@ -210,6 +210,7 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
         setstartPosMario(Point());  //Default Position
         setstartPosPauline(Point(GameConfig::MIN_X + 2, GameConfig::FLOORS::FLOOR8 - 1));
         setstartPosDonkeyKong(Point(GameConfig::MIN_X + 54, GameConfig::FLOORS::FLOOR8 - 1));
+        setPosHammer(Point(95, GameConfig::FLOOR6 - 1));
 
         //Barrels Settings
         barrelsSets.size = 4; //indicates that throwing barrels will repeat itself every 4 barrels
@@ -261,7 +262,7 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
             board[2][i] = 1;
         board[2][21] = 2;
 
-        for (i = 28; i <= 36; i++)
+        for (i = 28; i <= 38; i++)
             board[2][i] = 1;
         board[2][28] = 3;
 
@@ -379,6 +380,7 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
         setstartPosMario(Point());  //Default Position
         setstartPosPauline(Point(GameConfig::MIN_X + 2, GameConfig::FLOORS::FLOOR8 - 1));
         setstartPosDonkeyKong(Point(GameConfig::MIN_X + 54, GameConfig::FLOORS::FLOOR8 - 1));
+        setPosHammer(Point(41, GameConfig::FLOOR3 - 1));
 
         //Barrels Settings
         barrelsSets.size = 4; //indicates that throwing barrels will repeat itself every 4 barrels

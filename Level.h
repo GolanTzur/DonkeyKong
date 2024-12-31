@@ -20,6 +20,7 @@ class Level {
     Point startPosMario;
     Point startPosPauline;
     Point startPosDonkeyKong;
+    Point hammerPos;
     LevelSettings barrelsSets;
     vector <Ghost> ghosts;
 
@@ -51,6 +52,8 @@ public:
     void initializeBoard2();
     char(*getBoardPointer())[GameConfig::WIDTH - 2];
     void setstartPosMario(Point p) { startPosMario.setX(p.getX());startPosMario.setY(p.getY()); }
+    void setPosHammer(const Point& p) { hammerPos = p; }
+    Point getPosHammer() { return hammerPos; }
     Point getstartPosMario() { return startPosMario; }
     void setstartPosPauline(Point p) { startPosPauline.setX(p.getX());startPosPauline.setY(p.getY()); }
     Point getstartPosPauline() { return startPosPauline; }
