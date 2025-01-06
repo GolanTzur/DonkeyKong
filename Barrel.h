@@ -9,6 +9,7 @@ class Barrel
 {
 	Point pos;
 	GameConfig::ARROWKEYS dir;
+	int fallsecs;
 	
 public:
 	Barrel(Point _startpos,GameConfig::ARROWKEYS _dir);
@@ -18,7 +19,8 @@ public:
 	Point getPos() { return pos; }
 	void setDir(GameConfig::ARROWKEYS newdir) { dir = newdir; }
 	GameConfig::ARROWKEYS getDir(){ return dir; }
-	
+	int getFallSecs() { return fallsecs; }
+	void setFallSecs(int _fallsecs) { fallsecs = _fallsecs; }
 };
 	
 typedef struct  LEVELSETTINGS

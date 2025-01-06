@@ -13,6 +13,7 @@ public:
 	static int constexpr SPACE = 32;
 	static int constexpr FLOORDIFF = 4;
 	static int constexpr NUMFLOORS = 8;
+	static int constexpr MAXGAMESECS = 300;
 	enum FLOORS {
 		FLOOR1 = GameConfig::MIN_Y + GameConfig::HEIGHT - 1,
 		FLOOR2 = GameConfig::MIN_Y + GameConfig::HEIGHT - (1 + FLOORDIFF),

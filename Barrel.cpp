@@ -5,7 +5,7 @@
 using namespace std;
 Barrel::Barrel(Point _startpos, GameConfig::ARROWKEYS _dir): pos(_startpos),dir(_dir)
 {
-	
+	fallsecs = 0;
 }
 void Barrel::draw()
 {
@@ -21,6 +21,7 @@ void Barrel::move()
 		break;
 	case GameConfig::DOWN:
 		(pos.setY(pos.getY() + 1));
+		fallsecs++;
 		break;
 	case GameConfig::RIGHT:
 		(pos.setX(pos.getX() + 1));
@@ -33,10 +34,12 @@ void Barrel::move()
 	case GameConfig::DOWNANDLEFT:
 		(pos.setY(pos.getY() + 1));
 		(pos.setX(pos.getX() - 1));
+		fallsecs++;
 		break;
 	case GameConfig::DOWNANDRIGHT:
 		(pos.setY(pos.getY() + 1));
 		(pos.setX(pos.getX() + 1));
+		fallsecs++;
 		break;
 	case GameConfig::UPANDLEFT:
 		(pos.setY(pos.getY() - 1));

@@ -132,6 +132,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="general.h" />
     <ClInclude Include="Ghost.h" />
+    <ClInclude Include="Hammer.h" />
     <ClInclude Include="Ladder.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="Point.h" />
@@ -142,6 +143,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="general.cpp" />
     <ClCompile Include="Ghost.cpp" />
+    <ClCompile Include="Hammer.cpp" />
     <ClCompile Include="Ladder.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="Point.cpp" />
