@@ -9,5 +9,6 @@ public:
 	Hammer(Point _pos) : GameObject('P',_pos) { isVisible = true; }
 	bool getIsVisible() { return isVisible; }
 	void setIsVisible(bool _isVisible) { isVisible = _isVisible; }
+	void draw();
 };
 

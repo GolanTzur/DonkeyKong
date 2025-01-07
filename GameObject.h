@@ -1,18 +1,21 @@
 #pragma once
 #include "Point.h"
+#include "general.h"
+#include <iostream>
 class GameObject
 {
 protected :
-	const char representation;
+	char representation;
 	Point pos;
 public : 
 	GameObject(char _representation, Point _pos) : pos(_pos), representation(_representation){}
+	GameObject(char _representation) : representation(_representation){}
 	void draw() {
-		gotoxy(pos.getX(), pos.getY());cout << representation;
+		gotoxy(pos.getX(), pos.getY());std::cout << representation;
 	}
 	char getRepresentation() { return representation; };
 	Point getPos() { return pos; }
 	void setPos(Point _newpos) { pos = _newpos; }
-
+	GameObject operator =(const GameObject& other);
 };
 

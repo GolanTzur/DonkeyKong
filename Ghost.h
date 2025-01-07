@@ -7,9 +7,6 @@ using namespace std;
 
 class Ghost : public MovableObject
 {
-private:
-	Point pos;
-	GameConfig::ARROWKEYS dir;
 
 public:
 	Ghost(Point _pos); 

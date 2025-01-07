@@ -189,9 +189,9 @@ int nearLadder(Player* player, Ladder lad[], int size, GameConfig::ARROWKEYS dir
 				if (player->getPos().getY() == currfloor && (abs(distance = (player->getPos().getX() - lad[i].getPos().getX())) <= 1))
 				{
 					if (distance == 1)
-						player->setPos(player->getPos().getX() - 1, player->getPos().getY());
+						player->setPos({ player->getPos().getX() - 1, player->getPos().getY() });
 					if (distance == -1)
-						player->setPos(player->getPos().getX() + 1, player->getPos().getY());
+						player->setPos({ player->getPos().getX() + 1, player->getPos().getY() });
 					*ladderindex = i;
 					*climb = (currfloor - (lad[i].getPos().getY() - lad[i].getSteps()) + 1);
 					return lad[i].getSteps() + 1;
@@ -211,9 +211,9 @@ int nearLadder(Player* player, Ladder lad[], int size, GameConfig::ARROWKEYS dir
 				if (player->getPos().getY() == currfloor && (abs(distance = (player->getPos().getX() - lad[i].getPos().getX())) <= 1))
 				{
 					if (distance == 1)
-						player->setPos(player->getPos().getX() - 1, player->getPos().getY());
+						player->setPos({ player->getPos().getX() - 1, player->getPos().getY() });
 					if (distance == -1)
-						player->setPos(player->getPos().getX() + 1, player->getPos().getY());
+						player->setPos({player->getPos().getX() + 1, player->getPos().getY()});
 					*ladderindex = i;
 					*climb = (lad[i].getPos().getY() - currfloor) + 1;
 					return lad[i].getSteps() + 1;
@@ -452,7 +452,7 @@ void pauseGame(Player mario, vector<Barrel> barrels)
 void restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost>* ghosts,const vector<Ghost>& initposesghosts)
 {
 	//Mario initial position
-	mario->setPos(marioStartPos.getX(), marioStartPos.getY());
+	mario->setPos({ marioStartPos.getX(), marioStartPos.getY() });
 	mario->setDir(GameConfig::STAY);
 	mario->setHammer(GameConfig::ARROWKEYS::STAY);
 	//Delete all barrels
@@ -505,9 +505,9 @@ int main()
 			drawBorders();
 			bool finished = false;
 
-			Player mario(level.getstartPosMario(), '@');
-			Player pauline(level.getstartPosPauline(), '$');
-			Player donkeyKong(level.getstartPosDonkeyKong(), '&');
+			Player mario('@',level.getstartPosMario());
+			Player pauline('$',level.getstartPosPauline());
+			Player donkeyKong('&',level.getstartPosDonkeyKong());
 			Hammer hammer(level.getPosHammer());
 
 			

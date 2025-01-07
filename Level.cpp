@@ -32,7 +32,7 @@ void Level::addLadder(Ladder ladder)
     else
         ladders = (Ladder*)realloc(ladders, sizeof(Ladder) * numLadders);
 
-    ladders[numLadders - 1] = ladder;
+    ladders[numLadders - 1]=ladder;
 }
 
 Ladder Level::getLadder(int index) const {

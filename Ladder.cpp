@@ -15,3 +15,12 @@ void Ladder::draw() //Overrides original function
 	}
 
 }
+
+Ladder Ladder:: operator =(const Ladder& other)
+{
+	if (this != &other)
+		steps = other.steps;
+
+	GameObject::operator=(other);
+	return *this;
+}
