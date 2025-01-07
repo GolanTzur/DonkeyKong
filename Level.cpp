@@ -399,6 +399,7 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
 
         //Ghosts positions
         ghosts.push_back(Point(GameConfig::MIN_X + 20, GameConfig::FLOOR6-1));
+        ghosts.push_back(Point(GameConfig::MIN_X + 40, GameConfig::FLOOR6 - 1));
         ghosts.push_back(Point(GameConfig::MIN_X + 60, GameConfig::FLOOR7-1));
     }
 

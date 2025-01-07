@@ -9,6 +9,7 @@
 #include "Level.h"
 #include <vector>
 #include <iomanip>
+#include <unordered_map>
 #define INTERVAL 170
 #define NUMLEVELS 2
 #define SECOND 1000
@@ -116,7 +117,7 @@ int showTime(bool reset = false)
 	return secs++;
     }
 }
-int getFloor(int ycoor)
+int getFloor(int ycoor) //an index from 0 to 7
 {
 	if (ycoor >= GameConfig::FLOOR1)
 		return -1;
@@ -350,7 +351,7 @@ bool marioHitsBarrel(vector<Barrel> barrels, GameObject mario)
 	}
 	return false;
 }
-bool marioHitsGhost(vector<Ghost> ghosts, GameObject mario)
+bool marioHitsGhost(vector<Ghost>& ghosts, GameObject mario)
 {
 	for (auto& ghost : ghosts)
 	{
@@ -358,6 +359,50 @@ bool marioHitsGhost(vector<Ghost> ghosts, GameObject mario)
 			return true;
 	}
 	return false;
+}
+void ghostsChangeDir(vector<Ghost>& ghosts)
+{
+	vector<Ghost*> floordiv[8]; 
+
+	for (auto& ghost : ghosts) //Dividing the existing ghosts to subvectors differs by the floors
+	{
+		int currfloor;
+		currfloor = getFloor(ghost.getPos().getY());
+		floordiv[currfloor].push_back(&ghost);
+	}
+
+	for (int i = 0; i < 8; i++)
+	{
+		int currsize;
+		if ((currsize=floordiv[i].size()) > 1) //Multiple ghosts in the same floor
+		{
+
+			for (int j = 0; j < currsize; j++)
+			{
+				for (int k = j+1; k < currsize; k++)
+				{
+					if (abs(floordiv[i].at(j)->getPos().getX() - floordiv[i].at(k)->getPos().getX()) <= 2) //Change direction is needed
+					{
+
+						if (floordiv[i].at(j)->getDir() == GameConfig::LEFT)
+						{
+							floordiv[i].at(j)->setDir(GameConfig::RIGHT);
+							floordiv[i].at(k)->setDir(GameConfig::LEFT);
+						}
+						else
+						{
+							floordiv[i].at(j)->setDir(GameConfig::LEFT);
+							floordiv[i].at(k)->setDir(GameConfig::RIGHT);
+						}
+							
+					}
+				}
+			}
+		}
+
+
+	}
+
 }
 bool outOfBounds(Point pos)
 {
@@ -882,11 +927,13 @@ int main()
 					lives--;
 					restart(&mario, level.getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, level.getGhosts());
 				}
+				ghostsChangeDir(activeghosts);
 
 				for (auto& barel : barrels) //Move the barrels
 					barel.move();
 				for (auto& ghost : activeghosts) //Move the ghosts
 					ghost.move();
+
 
 				if (marioHitsBarrel(barrels, mario)||marioHitsGhost(activeghosts,mario))
 				{
