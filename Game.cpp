@@ -1,4 +1,4 @@
-#include "GameObject.h"
+#include "Player.h"
 #include "Hammer.h"
 #include <conio.h>
 #include <Windows.h>
@@ -176,7 +176,7 @@ bool LeaveLadder(Point currPos, Ladder lad, GameConfig::ARROWKEYS dir, char boar
 }
 
 
-int nearLadder(GameObject* player, Ladder lad[], int size, GameConfig::ARROWKEYS dir, int* ladderindex, int* climb) //Checks if mario is near a ladder
+int nearLadder(Player* player, Ladder lad[], int size, GameConfig::ARROWKEYS dir, int* ladderindex, int* climb) //Checks if mario is near a ladder
 {
 	int distance;
 	if (dir == GameConfig::UP) //Dir is UP
@@ -227,7 +227,7 @@ int nearLadder(GameObject* player, Ladder lad[], int size, GameConfig::ARROWKEYS
 
 	return 0;
 }
-bool barrelsCheckHits(vector<Barrel>* barrels, GameObject playerPosition) //Checks if two barrels hit and if mario is near the hit
+bool barrelsCheckHits(vector<Barrel>* barrels, Player playerPosition) //Checks if two barrels hit and if mario is near the hit
 {
 	bool currIndexdeleted;
 	for (int i = 0;i < (barrels->size());i++)
@@ -258,7 +258,7 @@ int barrelDistanceFloor(Barrel bar, int floor) //The distance between the barrel
 {
 	return ((GameConfig::MIN_Y + GameConfig::HEIGHT - 1) - bar.getPos().getY() - (GameConfig::FLOORDIFF * floor) - 1);
 }
-bool barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::WIDTH - 2],GameObject* mario)
+bool barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::WIDTH - 2],Player* mario)
 {
 	for (int i=0;i<barrels->size();i++)
 	{
@@ -342,7 +342,7 @@ bool barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::WIDTH -
 
 	return true;
 }
-bool marioHitsBarrel(vector<Barrel> barrels, GameObject mario)
+bool marioHitsBarrel(vector<Barrel> barrels, Player mario)
 {
 	for (auto& barrel : barrels)
 	{
@@ -351,7 +351,7 @@ bool marioHitsBarrel(vector<Barrel> barrels, GameObject mario)
 	}
 	return false;
 }
-bool marioHitsGhost(vector<Ghost>& ghosts, GameObject mario)
+bool marioHitsGhost(vector<Ghost>& ghosts, Player mario)
 {
 	for (auto& ghost : ghosts)
 	{
@@ -424,7 +424,7 @@ void printGhostsTraces(vector<Ghost>& ghosts)
 		cout << ' ';
 	}
 }
-void pauseGame(GameObject mario, vector<Barrel> barrels)
+void pauseGame(Player mario, vector<Barrel> barrels)
 {
 	gotoxy(0, GameConfig::HEIGHT + GameConfig::MIN_Y + 1);
 	cout << "Game Paused";
@@ -449,7 +449,7 @@ void pauseGame(GameObject mario, vector<Barrel> barrels)
 	gotoxy(0, GameConfig::HEIGHT + GameConfig::MIN_Y + 1);
 	cout << "            ";
 }
-void restart(GameObject* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost>* ghosts,const vector<Ghost>& initposesghosts)
+void restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost>* ghosts,const vector<Ghost>& initposesghosts)
 {
 	//Mario initial position
 	mario->setPos(marioStartPos.getX(), marioStartPos.getY());
@@ -505,9 +505,9 @@ int main()
 			drawBorders();
 			bool finished = false;
 
-			GameObject mario(level.getstartPosMario(), '@');
-			GameObject pauline(level.getstartPosPauline(), '$');
-			GameObject donkeyKong(level.getstartPosDonkeyKong(), '&');
+			Player mario(level.getstartPosMario(), '@');
+			Player pauline(level.getstartPosPauline(), '$');
+			Player donkeyKong(level.getstartPosDonkeyKong(), '&');
 			Hammer hammer(level.getPosHammer());
 
 			

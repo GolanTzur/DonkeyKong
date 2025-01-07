@@ -130,6 +130,8 @@
     <ClInclude Include="Barrel.h" />
     <ClInclude Include="GameConfig.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="MovableObject.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="general.h" />
     <ClInclude Include="Ghost.h" />
     <ClInclude Include="Hammer.h" />
@@ -141,6 +143,8 @@
     <ClCompile Include="Barrel.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="MovableObject.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="general.cpp" />
     <ClCompile Include="Ghost.cpp" />
     <ClCompile Include="Hammer.cpp" />

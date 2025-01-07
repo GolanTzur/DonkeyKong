@@ -1,14 +1,10 @@
 #pragma once
-#include "Point.h"
-class Ladder
+#include "GameObject.h"
+class Ladder : public GameObject
 {
-	Point startpos;
 	int steps;
-
 public:
-	Ladder(Point _startpos, int _steps = 1);
-	Ladder();
+	Ladder(Point _startpos, int _steps = 1) : GameObject('H',_startpos),steps(_steps){}
 	void draw();
 	int getSteps() { return steps; }
-	Point getPos() { return startpos; }
 };

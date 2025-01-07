@@ -1,16 +1,13 @@
 #pragma once
-#include "Point.h"
+#include "GameObject.h"
 #include <iostream>
-class Hammer
+class Hammer : public GameObject
 {
 private:
-	Point pos;
 	bool isVisible;
 public:
-	Hammer(Point _pos) : pos(_pos) { isVisible = true; }
-	Point getPos() { return pos; }
+	Hammer(Point _pos) : GameObject('P',_pos) { isVisible = true; }
 	bool getIsVisible() { return isVisible; }
 	void setIsVisible(bool _isVisible) { isVisible = _isVisible; }
-	void draw();
 };
 
