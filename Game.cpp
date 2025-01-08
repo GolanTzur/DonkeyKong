@@ -722,6 +722,33 @@ int main()
 					}
 					if (climb > 0) //Climb Mode
 					{
+						if ((climb == 1 && laddermotionprev == GameConfig::UP)||(climb==(ladderSteps-1)) && laddermotionprev == GameConfig::DOWN)
+						{
+
+							int floortoCheck = getFloor(mario.getPos().getY()) + 1;
+							if (floortoCheck > 7) floortoCheck = 7;
+							char element = level.getBoardValue(floortoCheck, (mario.getPos().getX()) - (GameConfig::MIN_X + 1));
+							if(laddermotionprev == GameConfig::UP)
+							gotoxy(mario.getPos().getX(), mario.getPos().getY()+1);
+							else
+								gotoxy(mario.getPos().getX(), mario.getPos().getY());
+							if (element != 0)
+							{
+								switch (element)
+								{
+								case 1:
+									cout << '=';
+									break;
+								case 2:
+									cout << '>';
+									break;
+								case 3:
+									cout << '<';
+									break;
+								}
+							}
+						}
+
 						if (mario.getDir() != GameConfig::ARROWKEYS::STAY)
 							climb--;
 						if (climb == 0)
