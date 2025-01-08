@@ -10,12 +10,12 @@ protected :
 public : 
 	GameObject(char _representation, Point _pos) : pos(_pos), representation(_representation){}
 	GameObject(char _representation) : representation(_representation){}
-	void draw() {
+	void draw() const {
 		gotoxy(pos.getX(), pos.getY());std::cout << representation;
 	}
 	char getRepresentation() { return representation; };
-	Point getPos() { return pos; }
-	void setPos(Point _newpos) { pos = _newpos; }
+	Point getPos() const { return pos; } 
+	void setPos(const Point& _newpos) { pos = _newpos; }
 	GameObject operator =(const GameObject& other);
 };
 

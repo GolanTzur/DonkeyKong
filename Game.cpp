@@ -10,50 +10,52 @@
 #include <vector>
 #include <iomanip>
 #include <unordered_map>
+#include <filesystem>
+
 #define INTERVAL 170
 #define NUMLEVELS 2
 #define SECOND 1000
  
-using namespace std;
+
 
 void startMenu() {
 	system("cls");
-	cout << "======================== Donkey Kong ============================== \n";
-	cout << "\n(1)Start a new game\n";
-	cout << "(8)instructions and game controls\n";
-	cout << "(9)Leave game\n";
-	cout << "=================================================================== \n";
-	cout << "Please select an option";
+	std::cout << "======================== Donkey Kong ============================== \n";
+	std::cout << "\n(1)Start a new game\n";
+	std::cout << "(8)instructions and game controls\n";
+	std::cout << "(9)Leave game\n";
+	std::cout << "=================================================================== \n";
+	std::cout << "Please select an option";
 }
 
 void showInstructions() {
 	system("cls");
-	cout << "============================ Instructions ==========================\n";
-	cout << "\nIn this game,, you play as Mario.\n";
-	cout << "Mario is given 3 chances (lives) to reach Pauline, which will be displayed in the upper-right corner of the screen\n";
-	cout << "Mario loses a life and the game restarts if he faces a barrel, falls to the abyss, falls for 3 or more floors, or find himself near a barrels explosion (2 Characters difference).\n";
-	cout << "====================================================================\n";
-	cout << "press any key to see the game controls...";
+	std::cout << "============================ Instructions ==========================\n";
+	std::cout << "\nIn this game,, you play as Mario.\n";
+	std::cout << "Mario is given 3 chances (lives) to reach Pauline, which will be displayed in the upper-right corner of the screen\n";
+	std::cout << "Mario loses a life and the game restarts if he faces a barrel, falls to the abyss, falls for 3 or more floors, or find himself near a barrels explosion (2 Characters difference).\n";
+	std::cout << "====================================================================\n";
+	std::cout << "press any key to see the game controls...";
 	_getch();
 	system("cls");
-	cout << "============================ game controls ==========================\n";
-	cout << "Use the following keys to play the game:\n";
-	cout << "A / D - Move Left / Right\n";
-	cout << "W - Jump\n";
-	cout << "S - Stay\n";
-	cout << "X - Tumble Down a Ladder\n";
-	cout << "Space - Pause the Game\n";
-	cout << "====================================================================\n";
-	cout << "Press any key to return to the main menu";
+	std::cout << "============================ game controls ==========================\n";
+	std::cout << "Use the following keys to play the game:\n";
+	std::cout << "A / D - Move Left / Right\n";
+	std::cout << "W - Jump\n";
+	std::cout << "S - Stay\n";
+	std::cout << "X - Tumble Down a Ladder\n";
+	std::cout << "Space - Pause the Game\n";
+	std::cout << "====================================================================\n";
+	std::cout << "Press any key to return to the main menu";
 	_getch();
 }
 
 int lvlSelect() {
 	system("cls");
-	cout << "========================= Level selection ==========================\n";
-	cout << "Select the level you wish to play on: \n";
-	cout << "(1)\n(2)\n";
-	cout << "====================================================================\n";
+	std::cout << "========================= Level selection ==========================\n";
+	std::cout << "Select the level you wish to play on: \n";
+	std::cout << "(1)\n(2)\n";
+	std::cout << "====================================================================\n";
 	char keyPressed = _getch();
 	switch (keyPressed) {
 	case '1':
@@ -71,26 +73,26 @@ void drawBorders()
 	for (int x = GameConfig::MIN_X; x < GameConfig::MIN_X + GameConfig::WIDTH; ++x)
 	{
 		gotoxy(x, GameConfig::MIN_Y);
-		cout << 'Q'; // Top border
+		std::cout << 'Q'; // Top border
 		gotoxy(x, GameConfig::MIN_Y + GameConfig::HEIGHT);
-		cout << 'Q'; // Bottom border
+		std::cout << 'Q'; // Bottom border
 	}
 
 	// Left and right borders
 	for (int y = GameConfig::MIN_Y; y < GameConfig::MIN_Y + GameConfig::HEIGHT; ++y) {
 		gotoxy(GameConfig::MIN_X, y);
-		cout << 'Q'; // Left border
+		std::cout << 'Q'; // Left border
 		gotoxy(GameConfig::MIN_X + GameConfig::WIDTH, y);
-		cout << 'Q'; // Right border
+		std::cout << 'Q'; // Right border
 	}
 	gotoxy(GameConfig::MIN_X + GameConfig::WIDTH, GameConfig::MIN_Y + GameConfig::HEIGHT);
-	cout << 'Q';
+	std::cout << 'Q';
 }
 
 void printLives(int lives)
 {
 	gotoxy(GameConfig::MIN_X + GameConfig::WIDTH + 3, GameConfig::MIN_Y);
-	cout << "Lives:" << lives;
+	std::cout << "Lives:" << lives;
 }
 int showTime(bool reset = false)
 {
@@ -109,9 +111,9 @@ int showTime(bool reset = false)
 
 	// Display time in "MM:SS" format (Given by ChatGpt)
 	gotoxy(GameConfig::MIN_X + GameConfig::WIDTH + 3, GameConfig::MIN_Y + 4);
-	cout << "Time: ";
+	std::cout << "Time: ";
 	gotoxy(GameConfig::MIN_X + GameConfig::WIDTH + 3, GameConfig::MIN_Y + 5);
-	cout << setw(2) << setfill('0') << minutes << ":"
+	std::cout << setw(2) << setfill('0') << minutes << ":"
 		<< setw(2) << setfill('0') << seconds
 		<< endl;
 	return secs++;
@@ -323,13 +325,13 @@ bool barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::WIDTH -
 					switch (element)
 					{
 					case 1:
-						cout << '=';
+						std::cout << '=';
 						break;
 					case 2:
-						cout << '>';
+						std::cout << '>';
 						break;
 					case 3:
-						cout << '<';
+						std::cout << '<';
 						break;
 					}
 				}
@@ -413,7 +415,7 @@ void printBarrelTraces(vector<Barrel> barrels)
 	for (auto& barrel : barrels)
 	{
 		gotoxy(barrel.getPos().getX(), barrel.getPos().getY());
-		cout << ' ';
+		std::cout << ' ';
 	}
 }
 void printGhostsTraces(vector<Ghost>& ghosts)
@@ -421,13 +423,13 @@ void printGhostsTraces(vector<Ghost>& ghosts)
 	for (auto& ghost : ghosts)
 	{
 		gotoxy(ghost.getPos().getX(), ghost.getPos().getY());
-		cout << ' ';
+		std::cout << ' ';
 	}
 }
 void pauseGame(Player mario, vector<Barrel> barrels)
 {
 	gotoxy(0, GameConfig::HEIGHT + GameConfig::MIN_Y + 1);
-	cout << "Game Paused";
+	std::cout << "Game Paused";
 	char keyPressed = 0;
 	mario.draw();
 	for (auto& bar : barrels)
@@ -440,14 +442,14 @@ void pauseGame(Player mario, vector<Barrel> barrels)
 
 	//Print ' ' after mario
 	gotoxy(mario.getPos().getX(), mario.getPos().getY());
-	cout << " ";
+	std::cout << " ";
 
 	//print ' ' after the barrels
 	printBarrelTraces(barrels);
 
 	//Delete the pause game caption
 	gotoxy(0, GameConfig::HEIGHT + GameConfig::MIN_Y + 1);
-	cout << "            ";
+	std::cout << "            ";
 }
 void restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost>* ghosts,const vector<Ghost>& initposesghosts)
 {
@@ -463,11 +465,16 @@ void restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* t
 	//Reset other variables
 	*timetonextbarrel = *climb = *jumpsecs = 0;
 }
+
 int main()
 {
 	bool gameRunning = false;
 	int menuOption = 0;
 	
+
+
+	
+
 	while (true) {
 		startMenu();
 		menuOption = _getch() - '0';
@@ -485,11 +492,11 @@ int main()
 			break;
 		case 9:
 			// Exit the game
-			cout << "\nExiting game...\n";
+			std::cout << "\nExiting game...\n";
 			return 0;  // Exit the program
 		default:
 			// Invalid option
-			cout << "Invalid choice, please try again.\n";
+			std::cout << "Invalid choice, please try again.\n";
 			break;
 		}
 
@@ -726,9 +733,10 @@ int main()
 						{
 
 							int floortoCheck = getFloor(mario.getPos().getY()) + 1;
-							if (floortoCheck > 7) floortoCheck = 7;
+							if (floortoCheck >= 7) floortoCheck = 7;
+							if (laddermotionprev == GameConfig::UP) floortoCheck--;
 							char element = level.getBoardValue(floortoCheck, (mario.getPos().getX()) - (GameConfig::MIN_X + 1));
-							if(laddermotionprev == GameConfig::UP)
+							if (laddermotionprev == GameConfig::UP)
 							gotoxy(mario.getPos().getX(), mario.getPos().getY()+1);
 							else
 								gotoxy(mario.getPos().getX(), mario.getPos().getY());
@@ -737,13 +745,13 @@ int main()
 								switch (element)
 								{
 								case 1:
-									cout << '=';
+									std::cout << '=';
 									break;
 								case 2:
-									cout << '>';
+									std::cout << '>';
 									break;
 								case 3:
-									cout << '<';
+									std::cout << '<';
 									break;
 								}
 							}
@@ -756,10 +764,13 @@ int main()
 					}
 					else if (descent > 0) //Falling Down
 					{
-						if (descent % 4 == 0) // checks if the fall shoud stop
+						if (descent % GameConfig::FLOORDIFF == 0) // checks if the fall shoud stop
 						{
 							int currFloor = getFloor(mario.getPos().getY());
-							if (level.getBoardValue(currFloor, mario.getPos().getX() - (GameConfig::MIN_X + 1)) != 0)
+							int col = mario.getPos().getX() - (GameConfig::MIN_X + 1);
+							if (col >= GameConfig::WIDTH - 2)
+								col = GameConfig::WIDTH - 2 - 1;
+							if (level.getBoardValue(currFloor, col) != 0)
 							{
 								if (descent >= GameConfig::FLOORDIFF * 3) //Mario fell 3 floors or more
 								{
@@ -785,7 +796,7 @@ int main()
 								descent = 0;
 							}
 						}
-						else if (descent % 4 == 1 && mario.getDir() != GameConfig::DOWN) //IN Case mario faces a brick while falling diagonally
+						else if (descent % GameConfig::FLOORDIFF == 1 && mario.getDir() != GameConfig::DOWN) //IN Case mario faces a brick while falling diagonally
 						{
 
 							int floortoCheck = getFloor(mario.getPos().getY()) + 1;
@@ -796,13 +807,13 @@ int main()
 								switch (element)
 								{
 								case 1:
-									cout << '=';
+									std::cout << '=';
 									break;
 								case 2:
-									cout << '>';
+									std::cout << '>';
 									break;
 								case 3:
-									cout << '<';
+									std::cout << '<';
 									break;
 								}
 							}
@@ -898,7 +909,7 @@ int main()
 					{
 						mario.setHammer(GameConfig::ARROWKEYS::RIGHT);
 						gotoxy(mario.getPos().getX() - 1, mario.getPos().getY() - 1);
-						cout << 'Q';
+						std::cout << 'Q';
 					}
 
 				}
@@ -927,7 +938,7 @@ int main()
 					{
 						mario.setHammer(GameConfig::ARROWKEYS::LEFT);
 						gotoxy(mario.getPos().getX() + 1, mario.getPos().getY() - 1);
-						cout << 'Q';
+						std::cout << 'Q';
 					}
 					
 				}
@@ -1028,7 +1039,7 @@ int main()
 
 				//Print ' ' after mario
 				gotoxy(mario.getPos().getX(), mario.getPos().getY());
-				cout << " ";
+				std::cout << " ";
 
 				//Print ' ' after the hammer if mario owns it
 				if (mario.getHammer() != GameConfig::ARROWKEYS::STAY &&climb==0&&(mario.getDir() == GameConfig::STAY || mario.getDir() == GameConfig::LEFT || mario.getDir() == GameConfig::RIGHT))
@@ -1036,12 +1047,12 @@ int main()
 					if (mario.getHammer() == GameConfig::ARROWKEYS::RIGHT)
 					{
 						gotoxy(mario.getPos().getX() + 1, mario.getPos().getY() - 1);
-						cout << " ";
+						std::cout << " ";
 					}
 					else
 					{
 						gotoxy(mario.getPos().getX() - 1, mario.getPos().getY() - 1);
-						cout << " ";
+						std::cout << " ";
 					}
 
 				}
@@ -1063,7 +1074,7 @@ int main()
 				if (finished)
 				{
 					gotoxy(0, GameConfig::HEIGHT + GameConfig::MIN_Y + 1);
-					cout << "Level Won," ;
+					std::cout << "Level Won," ;
 					currLvl++; //Level up
 
 					if (currLvl == NUMLEVELS + 1) //All levels finished
@@ -1075,13 +1086,13 @@ int main()
 						int minutes = gamesecs / 60;
 						int seconds = gamesecs % 60;
 						gotoxy(0,GameConfig::MIN_Y);
-						cout << "Time: ";
-						cout << setw(2) << setfill('0') << minutes << ":"
+						std::cout << "Time: ";
+						std::cout << setw(2) << setfill('0') << minutes << ":"
 							<< setw(2) << setfill('0') << seconds
 							<< endl;
 						//Show the score based on the game time
 						int score = (GameConfig::MAXGAMESECS +20) - gamesecs;
-						score > 20 ? cout << "Score : " << score<<endl : cout << "Score : 20"<<endl;
+						score > 20 ? std::cout << "Score : " << score<<endl : std::cout << "Score : 20"<<endl;
 
 						gameRunning = false;
 						
@@ -1091,12 +1102,12 @@ int main()
 				else
 				{
 					gotoxy(0, GameConfig::HEIGHT + GameConfig::MIN_Y + 1);
-					cout << "Failure," ;
+					std::cout << "Failure," ;
 					showTime(true);
 					gameRunning = false;
 				}
 				
-				cout << "Press any key to continue";
+				std::cout << "Press any key to continue";
 				_getch();
 			}
 			else //ESC pressed

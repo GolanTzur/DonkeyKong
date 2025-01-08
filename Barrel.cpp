@@ -1,7 +1,5 @@
 #include "Barrel.h"
 
-using namespace std;
-
 
 void Barrel::move()
 {

@@ -22,7 +22,7 @@ void Player::setDir(GameConfig::ARROWKEYS newdir)
 	}
 	
 }
-void Player::draw(bool&& climbmode) //We would like to show the hammer also
+void Player::draw(bool climbmode) const //We would like to show the hammer also
 {
 	GameObject::draw(); 
 	
@@ -32,13 +32,13 @@ void Player::draw(bool&& climbmode) //We would like to show the hammer also
 		if (dirHammer == GameConfig::ARROWKEYS::LEFT)
 		{
 			gotoxy(pos.getX() - 1, pos.getY() - 1);
-			cout << 'P';
+			std::cout << 'P';
 			
 		}
 		if (dirHammer == GameConfig::ARROWKEYS::RIGHT)
 		{
 			gotoxy(pos.getX() + 1, pos.getY() - 1);
-			cout << 'P';
+			std::cout << 'P';
 		}
 			
 	}

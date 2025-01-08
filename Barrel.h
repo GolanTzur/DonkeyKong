@@ -3,7 +3,6 @@
 #include "MovableObject.h"
 #include "general.h"
 
-using namespace std;
 
 class Barrel : public MovableObject
 {
@@ -13,7 +12,7 @@ private:
 public:
 	Barrel(Point _startpos, GameConfig::ARROWKEYS _dir) : MovableObject('O', _startpos, _dir) { fallsecs = 0; }
 	void move();
-	int getFallSecs() { return fallsecs; }
+	int getFallSecs() const { return fallsecs; }
 	void setFallSecs(int _fallsecs) { fallsecs = _fallsecs; }
 };
 	

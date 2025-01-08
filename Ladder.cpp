@@ -5,13 +5,13 @@
 using namespace std;
 
 
-void Ladder::draw() //Overrides original function
+void Ladder::draw() const//Overrides original function
 {
 
 	for (int i = this->getPos().getY();i > this->getPos().getY() - (steps-1);i--)
 	{
 		gotoxy(this->getPos().getX(), i);
-		cout << representation;
+		std::cout << representation;
 	}
 
 }

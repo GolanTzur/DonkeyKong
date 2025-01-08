@@ -1,6 +1,6 @@
 #include "Hammer.h"
 
-void Hammer::draw() //Overrides Base function
+void Hammer::draw() const //Overrides Base function
 {
 	if (isVisible)
 		GameObject::draw();
