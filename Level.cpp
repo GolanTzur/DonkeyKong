@@ -219,6 +219,9 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
         barrelsSets.dirs[2] = GameConfig::ARROWKEYS::LEFT;
         barrelsSets.dirs[3] = GameConfig::ARROWKEYS::RIGHT;
 
+        //Ghosts
+        ghosts.push_back(Point(GameConfig::MIN_X + 30, GameConfig::FLOOR4 - 1));
+
     }
     void Level::initializeBoard2()
     {
@@ -390,10 +393,10 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
         barrelsSets.dirs[3] = GameConfig::ARROWKEYS::RIGHT;
         barrelsSets.dirs[3] = GameConfig::ARROWKEYS::LEFT;
 
-        /*//Ghosts positions
+        //Ghosts positions
         ghosts.push_back(Point(GameConfig::MIN_X + 20, GameConfig::FLOOR6-1));
         ghosts.push_back(Point(GameConfig::MIN_X + 40, GameConfig::FLOOR6 - 1));
-        ghosts.push_back(Point(GameConfig::MIN_X + 60, GameConfig::FLOOR7-1));*/
+        ghosts.push_back(Point(GameConfig::MIN_X + 60, GameConfig::FLOOR7-1));
     }
 
 

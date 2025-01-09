@@ -10,12 +10,13 @@
 #include <vector>
 #include <iomanip>
 #include <unordered_map>
-#include <filesystem>
+#include <map>
+#include <string>
+#include "FileHandler.h"
 
 #define INTERVAL 170
 #define NUMLEVELS 2
 #define SECOND 1000
- 
 
 
 void startMenu() {
@@ -418,7 +419,7 @@ void printBarrelTraces(vector<Barrel> barrels)
 		std::cout << ' ';
 	}
 }
-void printGhostsTraces(vector<Ghost>& ghosts)
+void printGhostsTraces(const vector<Ghost>& ghosts)
 {
 	for (auto& ghost : ghosts)
 	{
@@ -426,7 +427,39 @@ void printGhostsTraces(vector<Ghost>& ghosts)
 		std::cout << ' ';
 	}
 }
-void pauseGame(Player mario, vector<Barrel> barrels)
+
+void printTrace(const vector<MovableObject>& tomove)
+{
+	for (auto& object : tomove)
+	{
+		gotoxy(object.getPos().getX(), object.getPos().getY());
+		std::cout << ' ';
+	}
+}
+
+void printMarioTrace(const Player& mario,const int& climb)
+{
+	//Print ' ' after mario
+	gotoxy(mario.getPos().getX(), mario.getPos().getY());
+	std::cout << " ";
+
+	//Print ' ' after the hammer if mario owns it
+	if (mario.getHammer() != GameConfig::ARROWKEYS::STAY && climb == 0 && (mario.getDir() == GameConfig::STAY || mario.getDir() == GameConfig::LEFT || mario.getDir() == GameConfig::RIGHT))
+	{
+		if (mario.getHammer() == GameConfig::ARROWKEYS::RIGHT)
+		{
+			gotoxy(mario.getPos().getX() + 1, mario.getPos().getY() - 1);
+			std::cout << " ";
+		}
+		else
+		{
+			gotoxy(mario.getPos().getX() - 1, mario.getPos().getY() - 1);
+			std::cout << " ";
+		}
+
+	}
+}
+void pauseGame(const Player& mario,const vector<Barrel>& barrels, const vector<Ghost>& ghosts,const int& climb)
 {
 	gotoxy(0, GameConfig::HEIGHT + GameConfig::MIN_Y + 1);
 	std::cout << "Game Paused";
@@ -434,18 +467,21 @@ void pauseGame(Player mario, vector<Barrel> barrels)
 	mario.draw();
 	for (auto& bar : barrels)
 		bar.draw();
+	for (auto& ghost : ghosts) //draw the ghosts
+		ghost.draw();
 	while (keyPressed != GameConfig::SPACE)
 	{
 		if (_kbhit())
 			keyPressed = _getch();
 	}
 
-	//Print ' ' after mario
-	gotoxy(mario.getPos().getX(), mario.getPos().getY());
-	std::cout << " ";
+	printMarioTrace(mario, climb);
 
 	//print ' ' after the barrels
 	printBarrelTraces(barrels);
+
+	//print ' ' after the ghosts
+	printGhostsTraces(ghosts);
 
 	//Delete the pause game caption
 	gotoxy(0, GameConfig::HEIGHT + GameConfig::MIN_Y + 1);
@@ -466,15 +502,17 @@ void restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* t
 	*timetonextbarrel = *climb = *jumpsecs = 0;
 }
 
+
 int main()
 {
 	bool gameRunning = false;
+	bool gameValid;
 	int menuOption = 0;
+
+	map<int,Level> alllevels;
+	gameValid=FileHandler::loadAllFiles(alllevels);
+
 	
-
-
-	
-
 	while (true) {
 		startMenu();
 		menuOption = _getch() - '0';
@@ -671,7 +709,7 @@ int main()
 							break;
 						}
 						case GameConfig::SPACE:
-							pauseGame(mario, barrels);
+							pauseGame(mario, barrels,activeghosts,climb);
 							break;
 						case GameConfig::ESC:
 							escPressed = true;
@@ -1037,27 +1075,9 @@ int main()
 					showTime();
 				}
 
-				//Print ' ' after mario
-				gotoxy(mario.getPos().getX(), mario.getPos().getY());
-				std::cout << " ";
-
-				//Print ' ' after the hammer if mario owns it
-				if (mario.getHammer() != GameConfig::ARROWKEYS::STAY &&climb==0&&(mario.getDir() == GameConfig::STAY || mario.getDir() == GameConfig::LEFT || mario.getDir() == GameConfig::RIGHT))
-				{
-					if (mario.getHammer() == GameConfig::ARROWKEYS::RIGHT)
-					{
-						gotoxy(mario.getPos().getX() + 1, mario.getPos().getY() - 1);
-						std::cout << " ";
-					}
-					else
-					{
-						gotoxy(mario.getPos().getX() - 1, mario.getPos().getY() - 1);
-						std::cout << " ";
-					}
-
-				}
+				printMarioTrace(mario, climb);
 				
-				//Print ' ' after the barrels
+				//Print ' ' after the barrels and ghosts
 				printBarrelTraces(barrels);
 				printGhostsTraces(activeghosts);
 
