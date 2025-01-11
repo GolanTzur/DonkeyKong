@@ -20,6 +20,7 @@ private:
 	 static bool ends_with(const std::string& str, const std::string& suffix);
 	 static int containValidNumber(const std::string& str);
 	 static int checkFileNameValidity(const string& name);
+	 bool lookForLegend(const Point& startpos, const string& str, Point* legendPos);
 	 static bool readFileContent(const string& name,Level& tobuild);
 
 public:

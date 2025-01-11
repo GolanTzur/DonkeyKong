@@ -7,7 +7,7 @@ class Point
 	int y;
 
 public:
-	Point(int x = GameConfig::MIN_X + 3, int y = GameConfig::FLOOR1 - 1);
+	Point(int x = 0, int y = 0);
 	
 	double calculateDistance(const Point& other);
 	int getX() const { return x; };

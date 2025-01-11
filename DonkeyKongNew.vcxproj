@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClInclude Include="Barrel.h" />
     <ClInclude Include="FileHandler.h" />
+    <ClInclude Include="Game.h" />
     <ClInclude Include="GameConfig.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="MovableObject.h" />
@@ -145,6 +146,7 @@
     <ClCompile Include="FileHandler.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="MovableObject.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="general.cpp" />

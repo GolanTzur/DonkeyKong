@@ -21,6 +21,8 @@ class Level {
     Point startPosPauline;
     Point startPosDonkeyKong;
     Point hammerPos;
+    Point boardPos;
+    Point legendPos;
     LevelSettings barrelsSets;
     vector <Ghost> ghosts;
 
@@ -28,14 +30,7 @@ public:
 
     Level()
     {
-        // Initialize board to 0 (no floor)
-        memset(board, 0, sizeof(board));
-
-        numLadders = 0;
-        // Allocate memory for ladders
-        ladders = nullptr;
-
-        ghosts = vector<Ghost>();
+        initLevel();
     }
     ~Level();
     void setBoardValue(int row, int col, char value);
@@ -56,8 +51,14 @@ public:
     Point getPosHammer() { return hammerPos; }
     Point getstartPosMario() { return startPosMario; }
     void setstartPosPauline(Point p) { startPosPauline.setX(p.getX());startPosPauline.setY(p.getY()); }
+    Point getBoardPos() { return boardPos; }
+    void setBoardPos(Point p) { boardPos.setX(p.getX());boardPos.setY(p.getY()); }
+    Point getLegendPos() { return legendPos; }
+    void setLegendPos(Point p) { legendPos.setX(p.getX());legendPos.setY(p.getY()); }
     Point getstartPosPauline() { return startPosPauline; }
     void setstartPosDonkeyKong(Point p) { startPosDonkeyKong.setX(p.getX());startPosDonkeyKong.setY(p.getY()); }
     Point getstartPosDonkeyKong() { return startPosDonkeyKong; }
     LevelSettings getLevelSettings() { return barrelsSets; }
+    int getFloorYcoor(const int& floor) const;
+    void initLevel();
 };

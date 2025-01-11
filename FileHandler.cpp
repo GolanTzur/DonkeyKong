@@ -1,4 +1,5 @@
 #include "FileHandler.h"
+#include <fstream>
 bool FileHandler::starts_with(const std::string& str, const std::string& prefix)
 {
 	return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
@@ -45,7 +46,57 @@ bool FileHandler::loadAllFiles(map<int, Level>& alllevels)
 
 	return res;
 }
+bool FileHandler:: lookForLegend(const Point& startpos, const string& str, Point* legendPos) 
+{ 
+	size_t pos = str.find("Lives", startpos.getX());
+	
+	if (pos != string::npos) //Found
+	{
+		legendPos->setY(startpos.getY());
+		legendPos->setX(pos);
+		return true;
+	}
+
+	false;
+}
+
 bool FileHandler:: readFileContent(const string& name,Level& tobuild)
 {
+	string line;
+	bool valid = false;
+	ifstream myFile(name, ios::in);
+	int currsize,currrow=7,currcol=0,numlines=0;
+	Point boardPos;
 
+	while (getline(myFile, line)&&line.empty()==true)
+	{
+		//Empty Lines in the start of the file should increase the y coordinate of the beginning of the board
+			boardPos.setY(boardPos.getY() + 1);
+	}
+	if (myFile.eof())
+		return false;
+
+	//Looking for the upper bound of the board
+	while (line[boardPos.getX()] != ' '&& boardPos.getX()<line.length()-GameConfig::WIDTH)
+		boardPos.setX(boardPos.getX()+1);
+
+	if (!(boardPos.getX() < line.length() - GameConfig::WIDTH))
+		return false;
+
+	for (int i = 0;i < GameConfig::WIDTH;i++)
+	{
+		if (line[boardPos.getX() + i] != 'Q')
+			return false;
+	}
+
+	do
+	{
+		
+		if(numlines==0)
+		while(line[i]!=' ')
+		numlines++;
+	} while (getline(myFile, line));
+
+
+	return valid;
 }
