@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "Barrel.h"
 #include "Ghost.h"
+#include "Hammer.h"
 #include <vector>
 
 using namespace std;
@@ -20,15 +21,14 @@ class Level {
     Point startPosMario;
     Point startPosPauline;
     Point startPosDonkeyKong;
-    Point hammerPos;
-    Point boardPos;
+    Hammer hammer;
     Point legendPos;
     LevelSettings barrelsSets;
     vector <Ghost> ghosts;
 
 public:
 
-    Level()
+    Level() 
     {
         initLevel();
     }
@@ -47,18 +47,17 @@ public:
     void initializeBoard2();
     char(*getBoardPointer())[GameConfig::WIDTH - 2];
     void setstartPosMario(Point p) { startPosMario.setX(p.getX());startPosMario.setY(p.getY()); }
-    void setPosHammer(const Point& p) { hammerPos = p; }
-    Point getPosHammer() { return hammerPos; }
+    void setHammer(const Hammer& p) { hammer=p; }
+    Hammer getHammer() { return hammer; }
     Point getstartPosMario() { return startPosMario; }
     void setstartPosPauline(Point p) { startPosPauline.setX(p.getX());startPosPauline.setY(p.getY()); }
-    Point getBoardPos() { return boardPos; }
-    void setBoardPos(Point p) { boardPos.setX(p.getX());boardPos.setY(p.getY()); }
     Point getLegendPos() { return legendPos; }
     void setLegendPos(Point p) { legendPos.setX(p.getX());legendPos.setY(p.getY()); }
     Point getstartPosPauline() { return startPosPauline; }
     void setstartPosDonkeyKong(Point p) { startPosDonkeyKong.setX(p.getX());startPosDonkeyKong.setY(p.getY()); }
     Point getstartPosDonkeyKong() { return startPosDonkeyKong; }
-    LevelSettings getLevelSettings() { return barrelsSets; }
-    int getFloorYcoor(const int& floor) const;
+    LevelSettings& getLevelSettings() { return barrelsSets; }
     void initLevel();
+
+    const Level& operator =(const Level& other) ;
 };

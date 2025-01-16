@@ -1,8 +1,11 @@
 #include "Game.h"
 
 
-void Game::startMenu() {
+void Game::startMenu(bool clearscreen)
+{
+	if(clearscreen)
 	system("cls");
+
 	std::cout << "======================== Donkey Kong ============================== \n";
 	std::cout << "\n(1)Start a new game\n";
 	std::cout << "(8)instructions and game controls\n";
@@ -11,7 +14,8 @@ void Game::startMenu() {
 	std::cout << "Please select an option";
 }
 
-void Game:: showInstructions() {
+void Game:: showInstructions()
+{
 	system("cls");
 	std::cout << "============================ Instructions ==========================\n";
 	std::cout << "\nIn this game,, you play as Mario.\n";
@@ -33,44 +37,67 @@ void Game:: showInstructions() {
 	_getch();
 }
 
-int Game:: lvlSelect() {
+std::map<int, Level>::iterator Game:: lvlSelect(map<int,Level>& levels)
+{
+	char userInput[2];
+	int currChoice;
+
 	system("cls");
 	std::cout << "========================= Level selection ==========================\n";
 	std::cout << "Select the level you wish to play on: \n";
-	std::cout << "(1)\n(2)\n";
-	std::cout << "====================================================================\n";
-	char keyPressed = _getch();
-	switch (keyPressed) {
-	case '1':
-		return 1;
 
-	case '2':
-		return 2;
+	for (auto iter = levels.begin();iter != levels.end();iter++) //Print all the level numbers loaded
+		cout << setw(2) << setfill('0') << iter->first << endl;
+
+	std::cout << "====================================================================\n";
+
+	userInput[0] = _getch();
+	cout << userInput[0];
+	userInput[1] = _getch();
+	cout << userInput[1]<<endl;
+	currChoice = (userInput[0]-'0') * 10 + (userInput[1]-'0');
+	auto it = levels.find(currChoice);
+
+	while (it == levels.end())
+	{
+		cout << "Wrong choice, Try again" << endl;
+		userInput[0] = _getch();
+		cout << userInput[0];
+		userInput[1] = _getch();
+		cout << userInput[1]<<endl;
+		currChoice = (userInput[0] - '0') * 10 + (userInput[1] - '0');
+		it = levels.find(currChoice);
 	}
+	return it;
 }
 
-void Game:: drawBorders(const Point& pos)
+void Game:: drawBorders()
 {
 
-	int xpos=pos.getX(), ypos=pos.getY();
 	// Top and bottom borders
-	for (int x = xpos; x < xpos + GameConfig::WIDTH; ++x)
+	for (int x = GameConfig::MIN_X; x < GameConfig::MIN_X + GameConfig::WIDTH; ++x)
 	{
-		gotoxy(x, ypos);
-		std::cout << 'Q'; // Top border
-		gotoxy(x, ypos + GameConfig::HEIGHT);
-		std::cout << 'Q'; // Bottom border
+		gotoxy(x, GameConfig::MIN_Y);
+		cout << 'Q'; // Top border
+		gotoxy(x, GameConfig::MIN_Y + GameConfig::HEIGHT);
+		cout << 'Q'; // Bottom border
 	}
 
 	// Left and right borders
-	for (int y = ypos; y < ypos + GameConfig::HEIGHT; ++y) {
-		gotoxy(xpos, y);
-		std::cout << 'Q'; // Left border
-		gotoxy(xpos + GameConfig::WIDTH, y);
-		std::cout << 'Q'; // Right border
+	for (int y = GameConfig::MIN_Y; y < GameConfig::MIN_Y + GameConfig::HEIGHT; ++y) {
+		gotoxy(GameConfig::MIN_X, y);
+		cout << 'Q'; // Left border
+		gotoxy(GameConfig::MIN_X + GameConfig::WIDTH, y);
+		cout << 'Q'; // Right border
 	}
-	gotoxy(xpos + GameConfig::WIDTH, ypos + GameConfig::HEIGHT);
-	std::cout << 'Q';
+	gotoxy(GameConfig::MIN_X + GameConfig::WIDTH, GameConfig::MIN_Y + GameConfig::HEIGHT);
+	cout << 'Q';
+}
+int Game:: getFloor(int ycoor)
+{
+	if (ycoor >= GameConfig::FLOOR1)
+		return -1;
+	return (((GameConfig::FLOOR1 - 1) - ycoor) / GameConfig::FLOORDIFF);
 }
 
 void Game:: printLives(int lives,const Point& legend)
@@ -103,17 +130,11 @@ int Game:: showTime(const Point& legend, bool reset = false)
 	return secs++;
     }
 }
-int Game:: getFloor(int ycoor) //an index from 0 to 7
-{
-	int min_y = currLevel->getFloorYcoor(0);
-	if (ycoor >=min_y)
-		return -1;
-	return (((min_y - 1) - ycoor) / GameConfig::FLOORDIFF);
-}
+
 char Game:: getSlope(Point currpos, char board[][GameConfig::WIDTH - 2])
 {
 	int row = getFloor(currpos.getY());
-	int col = currpos.getX() - (currLevel->getBoardPos().getX() + 1);
+	int col = currpos.getX() - (GameConfig::MIN_X + 1);
 	int right, left;
 	right = left = col;
 	bool stopSearch = false;
@@ -150,9 +171,9 @@ bool Game:: LeaveLadder(const Point& currPos,const Ladder& lad, GameConfig::ARRO
 		if (ypos == middlefloor)
 		{
 			int indexFloor = getFloor(ypos);
-			if (dir == GameConfig::LEFT && board[indexFloor][xpos - (currLevel->getBoardPos().getX() + 1) - 1] != 0)
+			if (dir == GameConfig::LEFT && board[indexFloor][xpos - (GameConfig::MIN_X + 1) - 1] != 0)
 				return true;
-			else if (dir == GameConfig::RIGHT && board[indexFloor][xpos - (currLevel->getBoardPos().getX() + 1) + 1] != 0)
+			else if (dir == GameConfig::RIGHT && board[indexFloor][xpos - (GameConfig::MIN_X + 1) + 1] != 0)
 				return true;
 			return false;
 		}
@@ -242,7 +263,7 @@ bool Game:: barrelsCheckHits(vector<Barrel>* barrels,const Player& playerPositio
 }
 int Game:: barrelDistanceFloor(const Barrel& bar, int floor) //The distance between the barrel and the floor
 {
-	return ((currLevel->getBoardPos().getY() + GameConfig::HEIGHT - 1) - bar.getPos().getY() - (GameConfig::FLOORDIFF * floor) - 1);
+	return ((GameConfig::MIN_Y + GameConfig::HEIGHT - 1) - bar.getPos().getY() - (GameConfig::FLOORDIFF * floor) - 1);
 }
 bool Game:: barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::WIDTH - 2],Player* mario)
 {
@@ -257,7 +278,7 @@ bool Game:: barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::
 		case GameConfig::ARROWKEYS::RIGHT:
 		case GameConfig::ARROWKEYS::LEFT:
 		{
-			if (board[floor][barrels->at(i).getPos().getX() - (currLevel->getBoardPos().getX() + 1)] == 0) //Barrel falls
+			if (board[floor][barrels->at(i).getPos().getX() - (GameConfig::MIN_X + 1)] == 0) //Barrel falls
 			{
 				if (currDir == GameConfig::ARROWKEYS::RIGHT)
 					barrels->at(i).setDir(GameConfig::DOWNANDRIGHT);
@@ -271,7 +292,7 @@ bool Game:: barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::
 		case GameConfig::ARROWKEYS::DOWNANDLEFT:
 		{
 
-			if (barreldistfloor == 0 && board[floor][barrels->at(i).getPos().getX() - (currLevel->getBoardPos().getX() + 1)] != 0) //Barrel fall should stop
+			if (barreldistfloor == 0 && board[floor][barrels->at(i).getPos().getX() - (GameConfig::MIN_X + 1)] != 0) //Barrel fall should stop
 			{
 				if (barrels->at(i).getFallSecs() >= 4 * (GameConfig::FLOORDIFF)) //Barrel fell to many floors and should explode
 				{
@@ -299,10 +320,10 @@ bool Game:: barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::
 						barrels->at(i).setDir(GameConfig::ARROWKEYS::LEFT);
 				}
 			}
-			else if (barreldistfloor == GameConfig::FLOORDIFF - 1 && board[floor + 1][barrels->at(i).getPos().getX() - (currLevel->getBoardPos().getX() + 1)] != 0) //Barrel hits a brick while falling
+			else if (barreldistfloor == GameConfig::FLOORDIFF - 1 && board[floor + 1][barrels->at(i).getPos().getX() - (GameConfig::MIN_X + 1)] != 0) //Barrel hits a brick while falling
 			{
 
-				char element = board[floor + 1][barrels->at(i).getPos().getX() - (currLevel->getBoardPos().getX() + 1)];
+				char element = board[floor + 1][barrels->at(i).getPos().getX() - (GameConfig::MIN_X + 1)];
 				gotoxy(barrels->at(i).getPos().getX(), barrels->at(i).getPos().getY());
 				if (element != 0)
 				{
@@ -392,7 +413,7 @@ void Game::ghostsChangeDir(vector<Ghost>& ghosts)
 }
 bool Game::outOfBounds(const Point& pos)
 {
-	return pos.getX() < currLevel->getBoardPos().getX() + 2 || pos.getX() > currLevel->getBoardPos().getX() + GameConfig::WIDTH - 2 || pos.getY() >currLevel->getBoardPos().getY() + GameConfig::HEIGHT - 1;
+	return pos.getX() < GameConfig::MIN_X + 2 || pos.getX() > GameConfig::MIN_X + GameConfig::WIDTH - 2 || pos.getY() > GameConfig::MIN_Y + GameConfig::HEIGHT - 1;
 }
 void Game::printBarrelTraces(vector<Barrel> barrels)
 {
@@ -436,7 +457,7 @@ void Game::printMarioTrace(const Player& mario,const int& climb)
 }
 void Game::pauseGame(const Player& mario,const vector<Barrel>& barrels, const vector<Ghost>& ghosts,const int& climb)
 {
-	gotoxy(0, GameConfig::HEIGHT +currLevel->getBoardPos().getY() + 1);
+	gotoxy(0, GameConfig::HEIGHT + GameConfig::MIN_Y + 1);
 	std::cout << "Game Paused";
 	char keyPressed = 0;
 	mario.draw();
@@ -459,7 +480,7 @@ void Game::pauseGame(const Player& mario,const vector<Barrel>& barrels, const ve
 	printGhostsTraces(ghosts);
 
 	//Delete the pause game caption
-	gotoxy(0, GameConfig::HEIGHT +currLevel->getBoardPos().getY() + 1);
+	gotoxy(0, GameConfig::HEIGHT +GameConfig::MIN_Y + 1);
 	std::cout << "            ";
 }
 void Game:: restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost>* ghosts,const vector<Ghost>& initposesghosts)
@@ -485,18 +506,35 @@ void Game::run()
 	int menuOption = 0;
 
 	map<int,Level> alllevels;
-	//gameValid=FileHandler::loadAllFiles(alllevels);
+	gameValid=FileHandler::loadAllFiles(alllevels);
+	auto currMapIndex = alllevels.end();
 
-	
+
+	if (!gameValid) //None of the boards were loaded
+	{
+		cout << "None of the boards were defined properly" << endl;
+		_getch();
+		return;
+	}
+
 	while (true) {
-		startMenu();
+		if (menuOption == 0) //True in the first stage only, thus we can check whether files didnt load
+			startMenu(false);
+		else
+			startMenu();
 		menuOption = _getch() - '0';
-		int currLvl = 1;
+		Level currLvl;
 		int lives;
+		int levelsleft;
 		switch (menuOption)
 		{
 		case 1:
+			currMapIndex = lvlSelect(alllevels);
+			currLvl = currMapIndex->second;
+			setLevel(&(currLvl));
 			gameRunning = true;
+
+			levelsleft = std::distance(currMapIndex, alllevels.end()); //How many levels left to play (relevant to the final score)
 			lives = 3;
 			break;
 		case 8:
@@ -516,21 +554,15 @@ void Game::run()
 		while (gameRunning) {
 			system("cls");
 			ShowConsoleCursor(false);
-			//Level currLevel = Level();
-			if (currLvl == 1)	
-				currLevel->initializeBoard1();
-			else
-				currLevel->initializeBoard2();
-
-
+			
 			currLevel->printBoard();
-			drawBorders(currLevel->getBoardPos());
+			drawBorders();
 			bool finished = false;
 
 			Player mario('@',currLevel->getstartPosMario());
 			Player pauline('$',currLevel->getstartPosPauline());
 			Player donkeyKong('&',currLevel->getstartPosDonkeyKong());
-			Hammer hammer(currLevel->getPosHammer());
+			Hammer hammer(currLevel->getHammer());
 
 			
 
@@ -557,7 +589,7 @@ void Game::run()
 
 			//Barrels
 			vector<Barrel> barrels;
-			LevelSettings currSettings = currLevel->getLevelSettings();
+			LevelSettings& currSettings =currLvl.getLevelSettings();
 			int timetonextbarrel = 0;
 			int currbarrelindex = 0;
 
@@ -750,7 +782,7 @@ void Game::run()
 							int floortoCheck = getFloor(mario.getPos().getY()) + 1;
 							if (floortoCheck >= 7) floortoCheck = 7;
 							if (laddermotionprev == GameConfig::UP) floortoCheck--;
-							char element = currLevel->getBoardValue(floortoCheck, (mario.getPos().getX()) - (currLevel->getBoardPos().getX() + 1));
+							char element = currLevel->getBoardValue(floortoCheck, (mario.getPos().getX()) - (GameConfig::MIN_X + 1));
 							if (laddermotionprev == GameConfig::UP)
 							gotoxy(mario.getPos().getX(), mario.getPos().getY()+1);
 							else
@@ -782,7 +814,7 @@ void Game::run()
 						if (descent % GameConfig::FLOORDIFF == 0) // checks if the fall shoud stop
 						{
 							int currFloor = getFloor(mario.getPos().getY());
-							int col = mario.getPos().getX() - (currLevel->getBoardPos().getX() + 1);
+							int col = mario.getPos().getX() - (GameConfig::MIN_X + 1);
 							if (col >= GameConfig::WIDTH - 2)
 								col = GameConfig::WIDTH - 2 - 1;
 							if (currLevel->getBoardValue(currFloor, col) != 0)
@@ -815,7 +847,7 @@ void Game::run()
 						{
 
 							int floortoCheck = getFloor(mario.getPos().getY()) + 1;
-							char element = currLevel->getBoardValue(floortoCheck, (mario.getPos().getX()) - (currLevel->getBoardPos().getX() + 1));
+							char element = currLevel->getBoardValue(floortoCheck, (mario.getPos().getX()) - (GameConfig::MIN_X + 1));
 							gotoxy(mario.getPos().getX(), mario.getPos().getY());
 							if (element != 0)
 							{
@@ -839,7 +871,7 @@ void Game::run()
 					else if (wPressed == 0)//Check if mario reached an edge on regular mode,Relevant for non-jumping  mode
 					{
 						int currFloor = getFloor(mario.getPos().getY());
-						if (currLevel->getBoardValue(currFloor, mario.getPos().getX() - (currLevel->getBoardPos().getX() + 1)) == 0)
+						if (currLevel->getBoardValue(currFloor, mario.getPos().getX() - (GameConfig::MIN_X + 1)) == 0)
 						{
 							if (mario.getDir() == GameConfig::RIGHT)
 							{
@@ -878,7 +910,7 @@ void Game::run()
 						GameConfig::ARROWKEYS currstate = mario.getDir();
 						if (currstate == GameConfig::ARROWKEYS::DOWNANDLEFT)
 						{
-							if (currLevel->getBoardValue(currFloor, mario.getPos().getX() - (currLevel->getBoardPos().getX() + 1)) != 0)
+							if (currLevel->getBoardValue(currFloor, mario.getPos().getX() - (GameConfig::MIN_X + 1)) != 0)
 								mario.setDir(GameConfig::ARROWKEYS::LEFT);
 							else
 								descent++;
@@ -886,7 +918,7 @@ void Game::run()
 
 						else if (currstate == GameConfig::DOWNANDRIGHT)
 						{
-							if (currLevel->getBoardValue(currFloor, mario.getPos().getX() - (currLevel->getBoardPos().getX() + 1)) != 0)
+							if (currLevel->getBoardValue(currFloor, mario.getPos().getX() - (GameConfig::MIN_X + 1)) != 0)
 								mario.setDir(GameConfig::ARROWKEYS::RIGHT);
 							else
 								descent++;
@@ -898,7 +930,7 @@ void Game::run()
 
 				}
 
-				if (mario.getPos().getX() < currLevel->getBoardPos().getX() + 2)//Reached Left Bound
+				if (mario.getPos().getX() < GameConfig::MIN_X + 2)//Reached Left Bound
 				{
 					if (wPressed > 0)// Jump Mode
 					{
@@ -928,7 +960,7 @@ void Game::run()
 					}
 
 				}
-				if (mario.getPos().getX() > currLevel->getBoardPos().getX() + GameConfig::WIDTH - 2)// Reached Right Bound
+				if (mario.getPos().getX() > GameConfig::MIN_X + GameConfig::WIDTH - 2)// Reached Right Bound
 				{
 					if (wPressed > 0)// Jump Mode
 					{
@@ -957,15 +989,17 @@ void Game::run()
 					}
 					
 				}
-				if (mario.getPos().getY() >=currLevel->getBoardPos().getY() + GameConfig::HEIGHT - 1) //Mario Fell Down
+				if (mario.getPos().getY() >=GameConfig::MIN_Y + GameConfig::HEIGHT - 1) //Mario Fell Down
 				{
 					lives--;
 					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts());
 				}
 
 				//Barrels and Ghosts
+				
 				if (timetonextbarrel == currSettings.intervalsBetweenBarrels[currbarrelindex]) //Time to add next barrel
 				{
+					
 					barrels.push_back(Barrel(donkeyKong.getPos(), currSettings.dirs[currbarrelindex]));
 					currbarrelindex++;
 					if (currbarrelindex == currSettings.size)
@@ -1070,14 +1104,20 @@ void Game::run()
 			{
 				if (finished)
 				{
-					gotoxy(0, GameConfig::HEIGHT +currLevel->getBoardPos().getY() + 1);
+					gotoxy(0, GameConfig::HEIGHT +GameConfig::MIN_Y + 1);
 					std::cout << "Level Won," ;
 
 					//Level up
-					currLevel->initLevel();
-					currLvl++; 
-
-					if (currLvl == NUMLEVELS + 1) //All levels finished
+					currMapIndex++;
+					if (currMapIndex != alllevels.end())
+					{
+						currLvl = currMapIndex->second;
+						std::cout << "Press any key to continue";
+						_getch();
+						setLevel(&(currLvl));
+					}
+					
+					else //All levels finished
 					{
 						system("cls");
 						int gamesecs = showTime(currLevel->getLegendPos(),true);
@@ -1090,25 +1130,28 @@ void Game::run()
 						std::cout << setw(2) << setfill('0') << minutes << ":"
 							<< setw(2) << setfill('0') << seconds
 							<< endl;
-						//Show the score based on the game time
-						int score = (GameConfig::MAXGAMESECS +20) - gamesecs;
+						//Show the score based on the game time and levels that played
+						int score = (GameConfig::MAXGAMESECS +20) - gamesecs+ (levelsleft*ADDITIONALSCORE);
 						score > 20 ? std::cout << "Score : " << score<<endl : std::cout << "Score : 20"<<endl;
 
 						gameRunning = false;
+						std::cout << "Press any key to continue";
+						_getch();
 						
 					}
 						
 				}
 				else
 				{
-					gotoxy(0, GameConfig::HEIGHT +currLevel->getBoardPos().getY() + 1);
+					gotoxy(0, GameConfig::HEIGHT +GameConfig::MIN_Y + 1);
 					std::cout << "Failure," ;
 					showTime(currLevel->getLegendPos(),true);
 					gameRunning = false;
+					std::cout << "Press any key to continue";
+					_getch();
 				}
 				
-				std::cout << "Press any key to continue";
-				_getch();
+				
 			}
 			else //ESC pressed
 			{

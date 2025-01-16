@@ -51,10 +51,10 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
     // Method to print the board
         void Level::printBoard() const
        {
-        int y = getFloorYcoor(0);
+        int y = GameConfig::FLOOR1;
         for (int i = 0; i < GameConfig::NUMFLOORS; i++)
         {
-            int x =boardPos.getX() + 1; // Start inside the border
+            int x =GameConfig::MIN_X+ 1; // Start inside the border
             for (int j = 0; j < GameConfig::WIDTH - 2; j++) // Full width now
             {
                 gotoxy(x, y);
@@ -104,33 +104,77 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
             ladders[i].draw();
         }
     }
-    int Level::getFloorYcoor(const int& floor) const
-    {
-        if(floor>=0&&floor<=7)
-        return boardPos.getY() + GameConfig::HEIGHT - (1 + (GameConfig::FLOORDIFF) * floor);
+   
 
-        return -1;
+    const Level& Level:: operator =(const Level& other)
+    {
+        if (&other != this)
+        {
+            
+            //Deep copy of the board
+            for (int i = 0;i < 8;i++)
+            {
+                for (int j = 0;j < GameConfig::WIDTH - 2;j++)
+                    board[i][j] = other.board[i][j];
+            }
+
+            //Deep copy of the ladders
+            numLadders= other.numLadders;
+            ladders = (Ladder*)malloc(sizeof(Ladder) * other.numLadders);
+            for (int i = 0;i < numLadders;i++)
+            {
+                ladders[i] = other.ladders[i];
+            }
+
+
+            //Deep copy of the ghosts
+            ghosts = other.ghosts;
+
+            //copy of other gamePositions
+            startPosMario = other.startPosMario;
+            startPosPauline = other.startPosPauline;
+            startPosDonkeyKong = other.startPosDonkeyKong;
+            legendPos = other.legendPos;
+            hammer = other.hammer;
+
+            //Deep copy of the settings for barrels
+            barrelsSets.size = other.barrelsSets.size;
+            barrelsSets.dirs = new GameConfig::ARROWKEYS[other.barrelsSets.size];
+            barrelsSets.intervalsBetweenBarrels = new int[other.barrelsSets.size];
+
+            for (int i = 0;i < barrelsSets.size;i++)
+            {
+
+                barrelsSets.dirs[i] = other.barrelsSets.dirs[i];
+                barrelsSets.intervalsBetweenBarrels[i] = other.barrelsSets.intervalsBetweenBarrels[i];
+
+            }
+        }
+        return *this;
     }
+
 
     void Level::initLevel()
     {
         // Initialize board to 0 (no floor)
         memset(board, 0, sizeof(board));
-
         numLadders = 0;
-        // Allocate memory for ladders
+
+        // Init all pointers to null
         ladders = nullptr;
+        barrelsSets.intervalsBetweenBarrels = nullptr;
+        barrelsSets.dirs = nullptr;
 
         ghosts = vector<Ghost>();
-        setBoardPos({ GameConfig::MIN_X,GameConfig::MIN_Y });
         setLegendPos({ GameConfig::LEGENDXCOOR,GameConfig::LEGENDYCOOR });
+
     }
 
     void Level::initializeBoard1()
     {
         int i;
 
-        //Floor 1
+        //FLOOR 1
         for (i = 0;i <= 30;i++)
             board[0][i] = 1;
 
@@ -210,23 +254,21 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
 
         //Ladders
 
-        addLadder(Ladder(Point(getBoardPos().getX() + 10, getFloorYcoor(0)-1), 5));
-        addLadder(Ladder(Point(getBoardPos().getX() + 30, getFloorYcoor(0)-1), 2));
-        addLadder(Ladder(Point(getBoardPos().getX() + 73, getFloorYcoor(0)-1), 2));
-        
-        addLadder(Ladder(Point(getBoardPos().getX() + 60, getFloorYcoor(3)-1), 2));
-        addLadder(Ladder(Point(getBoardPos().getX() + 28, getFloorYcoor(5)-1), 2));
-       
-        addLadder(Ladder(Point(getBoardPos().getX() + 55, getFloorYcoor(5)-1), 1));
-        addLadder(Ladder(Point(getBoardPos().getX() + 37, getFloorYcoor(3)-1), 1));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 10, GameConfig::FLOOR1 - 1), 5));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 30, GameConfig::FLOOR1 - 1), 2));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 73, GameConfig::FLOOR1 - 1), 2));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 60, GameConfig::FLOOR4 - 1), 2));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 28, GameConfig::FLOOR6 - 1), 2));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 55, GameConfig::FLOOR6 - 1), 1));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 37, GameConfig::FLOOR4 - 1), 1));
 
         
 
         //Characters starting Positions
-        setstartPosMario(Point(getBoardPos().getX() + 1, getFloorYcoor(0)-1));  //Default Position
-        setstartPosPauline(Point(getBoardPos().getX() + 2, getFloorYcoor(7)-1));
-        setstartPosDonkeyKong(Point(getBoardPos().getX() + 54, getFloorYcoor(7)-1));
-        setPosHammer(Point(getBoardPos().getX()+70, getFloorYcoor(7)-1));
+        setstartPosMario(Point(GameConfig::MIN_X + 1, GameConfig::FLOOR1-1));  //Default Position
+        setstartPosPauline(Point(GameConfig::MIN_X + 2, GameConfig::FLOOR8-1));
+        setstartPosDonkeyKong(Point(GameConfig::MIN_X + 54, GameConfig::FLOOR8-1));
+        setHammer(Point(GameConfig::MIN_X+70, GameConfig::FLOOR7-1));
 
         //Barrels Settings
         barrelsSets.size = 4; //indicates that throwing barrels will repeat itself every 4 barrels
@@ -242,14 +284,14 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
         barrelsSets.dirs[3] = GameConfig::ARROWKEYS::RIGHT;
 
         //Ghosts
-        ghosts.push_back(Point(getBoardPos().getX() + 30, getFloorYcoor(3) - 1));
+        ghosts.push_back(Point(GameConfig::MIN_X + 30, GameConfig::FLOOR3 - 1));
 
     }
     void Level::initializeBoard2()
     {
         int i;
 
-        //Floor 1
+        //FLOOR 1
         for (i = 0;i <= 28;i++)
             board[0][i] = 1;
 
@@ -379,24 +421,25 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
 
         //Ladders
 
-        addLadder(Ladder(Point(getBoardPos().getX() + 12, getFloorYcoor(0)-1), 1));
-        addLadder(Ladder(Point(getBoardPos().getX() + 50, getFloorYcoor(0)-1), 1));
-        addLadder(Ladder(Point(getBoardPos().getX() + 15, getFloorYcoor(1)-1), 1));
-        addLadder(Ladder(Point(getBoardPos().getX() + 6, getFloorYcoor(2)-1), 1));
-        addLadder(Ladder(Point(getBoardPos().getX() + 34, getFloorYcoor(2)-1), 1));
-        addLadder(Ladder(Point(getBoardPos().getX() + 47, getFloorYcoor(2)-1), 3));
-        addLadder(Ladder(Point(getBoardPos().getX() + 75, getFloorYcoor(1)-1), 2));
-        addLadder(Ladder(Point(getBoardPos().getX() + 5, getFloorYcoor(4)-1), 1));
-        addLadder(Ladder(Point(getBoardPos().getX() + 37, getFloorYcoor(3)-1), 1));
-        addLadder(Ladder(Point(getBoardPos().getX() + 72, getFloorYcoor(5)-1), 1));
-        addLadder(Ladder(Point(getBoardPos().getX() + 10, getFloorYcoor(6)-1), 1));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 12, GameConfig::FLOOR1 - 1), 1));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 50, GameConfig::FLOOR1 - 1), 1));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 15, GameConfig::FLOOR2 - 1), 1));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 6, GameConfig::FLOOR3 - 1), 1));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 34, GameConfig::FLOOR3 - 1), 1));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 47, GameConfig::FLOOR3 - 1), 3));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 73, GameConfig::FLOOR3 - 1), 1));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 5, GameConfig::FLOOR5 - 1), 1));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 37, GameConfig::FLOOR4 - 1), 1));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 72, GameConfig::FLOOR6 - 1), 1));
+        addLadder(Ladder(Point(GameConfig::MIN_X + 10, GameConfig::FLOOR7 - 1), 1));
+
 
 
         //Characters starting Positions
-        setstartPosMario(Point(getBoardPos().getX() + 1, getFloorYcoor(0)-1));  //Default Position
-        setstartPosPauline(Point(getBoardPos().getX() + 2, getFloorYcoor(7)-1));
-        setstartPosDonkeyKong(Point(getBoardPos().getX() + 54, getFloorYcoor(7)-1));
-        setPosHammer(Point(getBoardPos().getX()+41, getFloorYcoor(2)-1));
+        setstartPosMario(Point(GameConfig::MIN_X + 1, GameConfig::FLOOR1-1));  //Default Position
+        setstartPosPauline(Point(GameConfig::MIN_X + 2, GameConfig::FLOOR8-1));
+        setstartPosDonkeyKong(Point(GameConfig::MIN_X + 54, GameConfig::FLOOR8-1));
+        setHammer(Point(GameConfig::MIN_X+41, GameConfig::FLOOR2-1));
 
         //Barrels Settings
         barrelsSets.size = 4; //indicates that throwing barrels will repeat itself every 4 barrels
@@ -414,9 +457,9 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
         barrelsSets.dirs[3] = GameConfig::ARROWKEYS::LEFT;
 
         //Ghosts positions
-        ghosts.push_back(Point(getBoardPos().getX() + 20, getFloorYcoor(5)-1));
-        ghosts.push_back(Point(getBoardPos().getX() + 40, getFloorYcoor(5)-1));
-        ghosts.push_back(Point(getBoardPos().getX() + 60, getFloorYcoor(6)-1));
+        ghosts.push_back(Point(GameConfig::MIN_X + 20, GameConfig::FLOOR5-1));
+        ghosts.push_back(Point(GameConfig::MIN_X + 40, GameConfig::FLOOR5-1));
+        ghosts.push_back(Point(GameConfig::MIN_X + 60, GameConfig::FLOOR6-1));
     }
 
 

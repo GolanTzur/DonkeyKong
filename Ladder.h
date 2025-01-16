@@ -9,3 +9,8 @@ public:
 	int getSteps() const { return steps; }
 	Ladder operator =(const Ladder& other);
 };
+
+typedef struct Laddebuild
+{
+
+}Ladderbuild;

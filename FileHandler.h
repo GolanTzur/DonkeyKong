@@ -7,6 +7,8 @@
 #include <experimental/filesystem>
 #include <string>
 #include <algorithm>
+#include <fstream>
+#include <cctype> // for std::isspace
 
 namespace fs = std::experimental::filesystem;
 #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
@@ -20,8 +22,8 @@ private:
 	 static bool ends_with(const std::string& str, const std::string& suffix);
 	 static int containValidNumber(const std::string& str);
 	 static int checkFileNameValidity(const string& name);
-	 bool lookForLegend(const Point& startpos, const string& str, Point* legendPos);
 	 static bool readFileContent(const string& name,Level& tobuild);
+	 static int getFloor(int numline);
 
 public:
 	static bool loadAllFiles(map<int, Level>& alllevels);

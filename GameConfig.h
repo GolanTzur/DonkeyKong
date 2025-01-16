@@ -13,7 +13,7 @@ public:
 	static int constexpr SPACE = 32;
 	static int constexpr FLOORDIFF = 3;
 	static int constexpr NUMFLOORS = 8;
-	static int constexpr MAXGAMESECS = 300;
+	static int constexpr MAXGAMESECS = 600;
 	static int constexpr LEGENDXCOOR = 86;
 	static int constexpr LEGENDYCOOR = 4;
 

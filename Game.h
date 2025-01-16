@@ -16,27 +16,24 @@
 #include "FileHandler.h"
 
 #define INTERVAL 170
-#define NUMLEVELS 2
 #define SECOND 1000
+#define ADDITIONALSCORE 100
 
 class Game
 {
  private:
- Level* currLevel;
+  Level* currLevel;
 
  public:
 
-	 Game()
-	 {
-		 currLevel = new Level();
-	 }
-
+	 Game() : currLevel(nullptr){}
+	
 	 Level* getLevel() { return currLevel; }
 	 void setLevel(Level* newlevel) { system("cls");currLevel = newlevel; }
-	 void startMenu();
+	 void startMenu(bool clearscreen=true);
 	 void showInstructions();
-	 int lvlSelect();
-	 void drawBorders(const Point& pos);
+	 std::map<int, Level>::iterator lvlSelect(map<int, Level>& levels);
+	 void drawBorders();
 	 void printLives(int lives, const Point& legend);
 	 int showTime(const Point& legend, bool reset);
 	 int getFloor(int ycoor); //an index from 0 to 7
