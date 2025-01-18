@@ -1,5 +1,6 @@
 #include "FileHandler.h"
 #include <fstream>
+
 bool FileHandler::starts_with(const std::string& str, const std::string& prefix)
 {
 	return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
@@ -16,9 +17,7 @@ int FileHandler::containValidNumber(const std::string& str)
 		return 0;
 
 	sum += (str[6] - '0')*10 + (str[7] - '0');
-
 		return sum;
-	
 }
 int FileHandler::checkFileNameValidity(const string& name)
 {
@@ -41,7 +40,7 @@ bool FileHandler::loadAllFiles(map<int, Level>& alllevels)
 			Level tempLevel;
 			if (readFileContent(entry.path().filename().string(), tempLevel))
 			{
-				alllevels[curLevel] = tempLevel; // operator = of Level is being activated
+				alllevels[curLevel] = tempLevel; // Insert into the map only if successful
 				res = true;
 			}
 		}
@@ -51,7 +50,7 @@ bool FileHandler::loadAllFiles(map<int, Level>& alllevels)
 }
 
 
-int FileHandler::getFloor(int numline)
+int FileHandler::getFloorFile(int numline)
 {
 	int res;
 	res = (GameConfig::HEIGHT+1 - numline) / GameConfig::FLOORDIFF;
@@ -86,7 +85,6 @@ bool FileHandler::readFileContent(const string& name, Level& tobuild)
 	vector<Ladder> ladders;
 	
 
-
 	if (myFile.eof())
 	{
 		std::cout << "File " << name << " Is empty" << std::endl;
@@ -116,17 +114,23 @@ bool FileHandler::readFileContent(const string& name, Level& tobuild)
 	}
 		
 
-	for (int i = 0;i < GameConfig::WIDTH;i++)
+	// Process top border and check it
+	for (int i = 0; i < GameConfig::WIDTH; i++)
 	{
+		/*if (line[min_x + i] != 'Q')
+		{
+			// Fill missing borders with 'Q'
+			line[min_x + i] = 'Q';
+		}*/
 		if (line[min_x + i] != 'Q')
 		{
 			std::cout << "In File " << name << " board frame is invalid" << std::endl;
 			return false;
 		}
-			
 	}
-	char allladders[GameConfig::WIDTH - 2] = { 0 };
 
+	char allladders[GameConfig::WIDTH - 2] = { 0 }; //Tracking the ladders
+	vector<int> ghostXcoordinates= vector<int>(); //Tracking the ghosts
 
 	for (int i = 0; i < GameConfig::HEIGHT-1; i++)
 	{
@@ -140,13 +144,17 @@ bool FileHandler::readFileContent(const string& name, Level& tobuild)
 			return false;
 		}
 
+		// Check and fill missing borders in each row
+		//if (line[0] != 'Q') line[0] = 'Q'; // Left border
+		//if (line[line.size() - 1] != 'Q') line[line.size() - 1] = 'Q'; // Right border
+
 		if (line[0] != 'Q' || (line.size() - 1) < GameConfig::WIDTH || line[GameConfig::WIDTH] != 'Q')
 		{
 			std::cout << "In File " << name << " board frame is invalid" << std::endl;
 			return false;
 		}
 
-		int currFloor = getFloor(i);
+		int currFloor = getFloorFile(i);
 		if ((GameConfig::HEIGHT - i) % GameConfig::FLOORDIFF == 1) //two characters above floor
 		{
 
@@ -209,6 +217,7 @@ bool FileHandler::readFileContent(const string& name, Level& tobuild)
 
 			for (int j = 1; j < GameConfig::WIDTH-1; j++)
 			{
+
 				if (line[j] == '@')
 				{
 					if (foundMarioPos == true)
@@ -254,8 +263,13 @@ bool FileHandler::readFileContent(const string& name, Level& tobuild)
 				}
 
 				else if (line[j] == 'x')
-					tobuild.getGhosts().push_back(Point(GameConfig::MIN_X + (j - 1), currFloor));
+				{
 
+					int ghostXcoor = GameConfig::MIN_X + (j - 1);
+					tobuild.getGhosts().push_back(Point(ghostXcoor, currFloor));
+					ghostXcoordinates.push_back(ghostXcoor);
+
+				}
 				else if (line[j] == 'L')
 				{
 					if (foundLegendPos == true)
@@ -293,6 +307,7 @@ bool FileHandler::readFileContent(const string& name, Level& tobuild)
 		{
 
 			int floorindex = ((GameConfig::HEIGHT + 1 - i) / GameConfig::FLOORDIFF) - 1;
+
 			for (int j = 1; j < GameConfig::WIDTH-1; j++)
 			{
 
@@ -312,6 +327,12 @@ bool FileHandler::readFileContent(const string& name, Level& tobuild)
 					}
 					else // line line[j] is ' '
 					{
+						if (std::find(ghostXcoordinates.begin(), ghostXcoordinates.end(), GameConfig::MIN_X + (j - 1)) != ghostXcoordinates.end())
+						{
+
+							std::cout << "In File " << name << " There " << " At : " << "Row: " << i + 1 << " Col: " << j << " There is ghost in the air" << std::endl;
+							return false;
+						}
 						tobuild.getBoardPointer()[floorindex][j - 1] = 0;
 					}
 					if (allladders[j - 1] > 0) //End of a ladder from the upper floor
@@ -321,6 +342,7 @@ bool FileHandler::readFileContent(const string& name, Level& tobuild)
 						allladders[j - 1] = 0;
 					}
 				}
+
 				else if (line[j] == 'H') //By default if a ladder goes through a brick the brick is plain, ladders couldnt end in this line
 				{
 					if (allladders[j - 1] > 0)
@@ -342,6 +364,7 @@ bool FileHandler::readFileContent(const string& name, Level& tobuild)
 				}
 			}
 
+			ghostXcoordinates.clear();
 		}
 
 
@@ -355,12 +378,12 @@ bool FileHandler::readFileContent(const string& name, Level& tobuild)
 		return false;
 	}
 	getline(myFile, line);
+
 	for (int i = 0;i < GameConfig::WIDTH;i++)
 	{
-		if (line[min_x + i] != 'Q')
+		for (int i = 0; i < GameConfig::WIDTH; i++)
 		{
-			std::cout << "In File " << name << " board frame is invalid" << std::endl;
-			return false;
+			if (line[min_x + i] != 'Q') line[min_x + i] = 'Q'; // Ensure bottom border is 'Q'
 		}
 	}
 	while (std::getline(myFile, line)) {

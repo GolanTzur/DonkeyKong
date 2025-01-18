@@ -23,11 +23,12 @@ class Game
 {
  private:
   Level* currLevel;
+  int score;
 
  public:
-
-	 Game() : currLevel(nullptr){}
-	
+	 Game() : currLevel(nullptr), score(999){}
+	 void updateScore(int points); 
+	 void printScore(const Point& legend);  
 	 Level* getLevel() { return currLevel; }
 	 void setLevel(Level* newlevel) { system("cls");currLevel = newlevel; }
 	 void startMenu(bool clearscreen=true);
@@ -45,7 +46,8 @@ class Game
 	 bool barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::WIDTH - 2], Player* mario);
 	 bool marioHitsBarrel(vector<Barrel>& barrels, const Player& mario);
 	 bool marioHitsGhost(vector<Ghost>& ghosts, const Player& mario);
-	 void ghostsChangeDir(vector<Ghost>& ghosts);
+	 void ghostsChangeDir(vector<Ghost>& ghosts, char board[][GameConfig::WIDTH - 2]);
+	 GameConfig::ARROWKEYS ghostReachedEdge(Ghost* gh, char board[][GameConfig::WIDTH - 2]);
 	 bool outOfBounds(const Point& pos);
 	 void printBarrelTraces(vector<Barrel> barrels);
 	 void printGhostsTraces(const vector<Ghost>& ghosts);

@@ -58,7 +58,7 @@ std::map<int, Level>::iterator Game:: lvlSelect(map<int,Level>& levels)
 	currChoice = (userInput[0]-'0') * 10 + (userInput[1]-'0');
 	auto it = levels.find(currChoice);
 
-	while (it == levels.end()) //Bad choice
+	while (it == levels.end())
 	{
 		cout << "Wrong choice, Try again" << endl;
 		userInput[0] = _getch();
@@ -93,7 +93,7 @@ void Game:: drawBorders()
 	gotoxy(GameConfig::MIN_X + GameConfig::WIDTH, GameConfig::MIN_Y + GameConfig::HEIGHT);
 	cout << 'Q';
 }
-int Game:: getFloor(int ycoor)
+int Game :: getFloor(int ycoor)
 {
 	if (ycoor >= GameConfig::FLOOR1)
 		return -1;
@@ -123,12 +123,25 @@ int Game:: showTime(const Point& legend, bool reset = false)
 	// Display time in "MM:SS" format (Given by ChatGpt)
 	gotoxy(legend.getX(), legend.getY()+1);
 	std::cout << "Time: ";
-	gotoxy(legend.getX(), legend.getY() + 2);
+	gotoxy(legend.getX() + 5, legend.getY() + 1);
 	std::cout << setw(2) << setfill('0') << minutes << ":"
 		<< setw(2) << setfill('0') << seconds
 		<< endl;
+	updateScore(-1);
 	return secs++;
     }
+}
+
+void Game::updateScore(int points)
+{
+	if(score > 0)
+	score += points;  // Increment score by the specified points
+}
+
+void Game::printScore(const Point& legend)
+{
+	gotoxy(legend.getX(), legend.getY() + 2);  
+	std::cout << "Score: " << score << std::endl;
 }
 
 char Game:: getSlope(Point currpos, char board[][GameConfig::WIDTH - 2])
@@ -367,50 +380,100 @@ bool Game::marioHitsGhost(vector<Ghost>& ghosts,const Player& mario)
 	}
 	return false;
 }
-void Game::ghostsChangeDir(vector<Ghost>& ghosts)
+void Game::ghostsChangeDir(vector<Ghost>& ghosts, char board[][GameConfig::WIDTH - 2])
 {
-	vector<Ghost*> floordiv[8]; 
+	vector<Ghost*> floordiv[8];
 
-	for (auto& ghost : ghosts) //Dividing the existing ghosts to subvectors differs by the floors
+	// Dividing the existing ghosts into subvectors by their floors
+	for (auto& ghost : ghosts)
 	{
-		int currfloor;
-		currfloor = getFloor(ghost.getPos().getY());
+		int currfloor = getFloor(ghost.getPos().getY());
 		floordiv[currfloor].push_back(&ghost);
 	}
 
-	for (int i = 0; i < 8; i++)
+	// Check for multiple ghosts on the same floor
+	for (int i = 0; i < 8; i++) 
 	{
-		int currsize;
-		if ((currsize=floordiv[i].size()) > 1) //Multiple ghosts in the same floor
-		{
 
-			for (int j = 0; j < currsize; j++)
+		int currsize = floordiv[i].size();
+		if (currsize == 0)
+			continue;
+
+		bool* changedDirs = new bool[currsize];
+
+		for (int i = 0;i < currsize;i++)
+			changedDirs[i] = false; // if a ghost needs to change direction twice(once right and once left he will stay in its place)
+
+			for (int j = 0; j < currsize; j++) //Current ghost in floor i
 			{
-				for (int k = j+1; k < currsize; k++)
+				
+				for (int k = j + 1; k < currsize; k++) // Check if there are ghosts that close enough to require direction change
 				{
-					if (abs(floordiv[i].at(j)->getPos().getX() - floordiv[i].at(k)->getPos().getX()) <= 2) //Change direction is needed
+					
+					if (abs(floordiv[i].at(j)->getPos().getX() - floordiv[i].at(k)->getPos().getX()) <= 2)
 					{
+						if (floordiv[i].at(j)->getDir() == GameConfig::STAY) //Direction will be set by the other ghost
+						{
+							if(floordiv[i].at(k)->getDir() == GameConfig::LEFT)
+							{
+								floordiv[i].at(j)->setDir(GameConfig::RIGHT);
+								floordiv[i].at(k)->setDir(GameConfig::LEFT);
+							}
+							else
+							{
+								floordiv[i].at(j)->setDir(GameConfig::LEFT);
+								floordiv[i].at(k)->setDir(GameConfig::RIGHT);
+							}
 
-						if (floordiv[i].at(j)->getDir() == GameConfig::LEFT)
-						{
-							floordiv[i].at(j)->setDir(GameConfig::RIGHT);
-							floordiv[i].at(k)->setDir(GameConfig::LEFT);
 						}
-						else
+						else if (floordiv[i].at(j)->getDir() == GameConfig::LEFT)
 						{
-							floordiv[i].at(j)->setDir(GameConfig::LEFT);
-							floordiv[i].at(k)->setDir(GameConfig::RIGHT);
+						    changedDirs[j] == true ? floordiv[i].at(j)->setDir(GameConfig::STAY) : floordiv[i].at(j)->setDir(GameConfig::RIGHT);
+							changedDirs[k] == true ? floordiv[i].at(k)->setDir(GameConfig::STAY) : floordiv[i].at(k)->setDir(GameConfig::LEFT);
 						}
-							
+						else  //Current ghost goes right
+						{
+							changedDirs[j] == true ? floordiv[i].at(j)->setDir(GameConfig::STAY) : floordiv[i].at(j)->setDir(GameConfig::LEFT);
+							changedDirs[k] == true ? floordiv[i].at(k)->setDir(GameConfig::STAY) : floordiv[i].at(k)->setDir(GameConfig::RIGHT);
+						}
+						changedDirs[j] = changedDirs[k] = true;
 					}
 				}
+				
+				GameConfig::ARROWKEYS newdir;
+				if ((floordiv[i].at(j)->getDir() != GameConfig::STAY || changedDirs[j]==false) && (newdir=ghostReachedEdge(floordiv[i].at(j), board))!=GameConfig::STAY)
+				{
+					if (floordiv[i].at(j)->getDir() == GameConfig::STAY) //In stay mode due to previous iteration
+						 floordiv[i].at(j)->setDir(newdir);
+					else
+					   changedDirs[j] == true ? floordiv[i].at(j)->setDir(GameConfig::STAY) : floordiv[i].at(j)->setDir(newdir);
+					
+					changedDirs[j] = true;
+				}
+
+				if (!changedDirs[j])
+				{
+
+					char num;
+					if (floordiv[i].at(j)->getDir() == GameConfig::ARROWKEYS::STAY) //In stay mode we will choose randomly where to go
+					{
+						num = rand() % 2;
+						num == 0 ? floordiv[i].at(j)->setDir(GameConfig::LEFT) : floordiv[i].at(j)->setDir(GameConfig::RIGHT);
+					}
+					else
+					{
+						num = rand() % 20;
+						if (num == 0)
+							floordiv[i].at(j)->getDir() == GameConfig::ARROWKEYS::RIGHT ? floordiv[i].at(j)->setDir(GameConfig::LEFT) : floordiv[i].at(j)->setDir(GameConfig::RIGHT);
+					}
+				}
+
+				
 			}
-		}
-
-
+			delete[] changedDirs;
 	}
-
 }
+
 bool Game::outOfBounds(const Point& pos)
 {
 	return pos.getX() < GameConfig::MIN_X + 2 || pos.getX() > GameConfig::MIN_X + GameConfig::WIDTH - 2 || pos.getY() > GameConfig::MIN_Y + GameConfig::HEIGHT - 1;
@@ -423,6 +486,49 @@ void Game::printBarrelTraces(vector<Barrel> barrels)
 		std::cout << ' ';
 	}
 }
+
+GameConfig::ARROWKEYS Game:: ghostReachedEdge(Ghost* gh, char board[][GameConfig::WIDTH-2])
+{
+
+	if (gh->getPos().getX() > GameConfig::MIN_X + GameConfig::WIDTH - 2) //Reached right bound
+		return GameConfig::ARROWKEYS::LEFT;
+	
+	else if (gh->getPos().getX() < GameConfig::MIN_X + 2) //Reached Left bound
+		return GameConfig::ARROWKEYS::RIGHT;
+
+	else
+	{
+
+		int floor = getFloor(gh->getPos().getY());
+
+		if (gh->getDir() == GameConfig::RIGHT)
+		{
+			if (board[floor][(gh->getPos().getX() - (GameConfig::MIN_X) + 1)] == 0) //No right brick
+				return GameConfig::ARROWKEYS::LEFT;
+			
+		}
+		else if (gh->getDir() == GameConfig::LEFT)
+		{
+			if (board[floor][(gh->getPos().getX() - (GameConfig::MIN_X+1) - 1)] == 0) //No left brick
+				return GameConfig::ARROWKEYS::RIGHT;
+				
+		}
+		else //Stay
+		{
+			if (board[floor][(gh->getPos().getX() - (GameConfig::MIN_X+1) - 1)] == 0) //No left brick
+				return GameConfig::ARROWKEYS::RIGHT;
+
+			else if(board[floor][(gh->getPos().getX() - (GameConfig::MIN_X) + 1)] == 0) //No right brick
+				return GameConfig::ARROWKEYS::LEFT;
+
+		}
+
+		return GameConfig::ARROWKEYS::STAY;
+	}
+}
+
+
+
 void Game::printGhostsTraces(const vector<Ghost>& ghosts)
 {
 	for (auto& ghost : ghosts)
@@ -465,7 +571,7 @@ void Game::pauseGame(const Player& mario,const vector<Barrel>& barrels, const ve
 		bar.draw();
 	for (auto& ghost : ghosts) //draw the ghosts
 		ghost.draw();
-	while (keyPressed != GameConfig::SPACE)
+	while (keyPressed != GameConfig::ESC)
 	{
 		if (_kbhit())
 			keyPressed = _getch();
@@ -529,7 +635,6 @@ void Game::run()
 		switch (menuOption)
 		{
 		case 1:
-
 			currMapIndex = lvlSelect(alllevels);
 			currLvl = currMapIndex->second;
 			setLevel(&(currLvl));
@@ -564,7 +669,6 @@ void Game::run()
 			Player mario('@',currLevel->getstartPosMario());
 			Player pauline('$',currLevel->getstartPosPauline());
 			Player donkeyKong('&',currLevel->getstartPosDonkeyKong());
-
 			Hammer hammer(currLevel->getHammer());
 
 			
@@ -720,10 +824,10 @@ void Game::run()
 							}
 							break;
 						}
-						case GameConfig::SPACE:
+						case GameConfig::ESC:
 							pauseGame(mario, barrels,activeghosts,climb);
 							break;
-						case GameConfig::ESC:
+						case GameConfig::SPACE:
 							escPressed = true;
 							break;
 						case 'p':
@@ -738,6 +842,7 @@ void Game::run()
 										if (barrels.at(i).getPos().getX() > mario.getPos().getX()&&mario.getPos().calculateDistance(barrels.at(i).getPos()) <= 2)
 										{
 											barrels.erase(barrels.begin() + i);
+											updateScore(150);
 											i--;
 										}
 									}
@@ -746,6 +851,7 @@ void Game::run()
 										if (activeghosts.at(i).getPos().getX() > mario.getPos().getX() && mario.getPos().calculateDistance(activeghosts.at(i).getPos()) <= 2)
 										{
 											activeghosts.erase(activeghosts.begin() + i);
+											updateScore(200);
 											i--;
 										}
 									}
@@ -1002,6 +1108,7 @@ void Game::run()
 				
 				if (timetonextbarrel == currSettings.intervalsBetweenBarrels[currbarrelindex]) //Time to add next barrel
 				{
+					
 					barrels.push_back(Barrel(donkeyKong.getPos(), currSettings.dirs[currbarrelindex]));
 					currbarrelindex++;
 					if (currbarrelindex == currSettings.size)
@@ -1016,7 +1123,9 @@ void Game::run()
 					lives--;
 					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts());
 				}
-				ghostsChangeDir(activeghosts);
+				ghostsChangeDir(activeghosts, currLevel->getBoardPointer());
+
+
 
 				for (auto& barel : barrels) //Move the barrels
 					barel.move();
@@ -1087,6 +1196,8 @@ void Game::run()
 					timePlayed -= SECOND;
 					showTime(currLevel->getLegendPos());
 				}
+				
+				printScore(currLevel->getLegendPos());  // Print score
 
 				printMarioTrace(mario, climb);
 				

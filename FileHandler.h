@@ -10,6 +10,7 @@
 #include <fstream>
 #include <cctype> // for std::isspace
 
+
 namespace fs = std::experimental::filesystem;
 #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #define FILELEN 15
@@ -23,7 +24,7 @@ private:
 	 static int containValidNumber(const std::string& str);
 	 static int checkFileNameValidity(const string& name);
 	 static bool readFileContent(const string& name,Level& tobuild);
-	 static int getFloor(int numline);
+	 static int getFloorFile(int numline);
 
 public:
 	static bool loadAllFiles(map<int, Level>& alllevels);

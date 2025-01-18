@@ -9,7 +9,6 @@ class Ghost : public MovableObject
 {
 
 public:
-	Ghost(Point _pos); 
-	void move();
+	Ghost(Point _pos);
 };
 
