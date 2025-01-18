@@ -13,7 +13,7 @@ int FileHandler::containValidNumber(const std::string& str)
 {
 	int sum = 0;
 	if (str[6] < '0' || str[6]>'9' || str[7] < '0' || str[7] > '9')
-		return -1;
+		return 0;
 
 	sum += (str[6] - '0')*10 + (str[7] - '0');
 
@@ -41,8 +41,7 @@ bool FileHandler::loadAllFiles(map<int, Level>& alllevels)
 			Level tempLevel;
 			if (readFileContent(entry.path().filename().string(), tempLevel))
 			{
-
-				alllevels[curLevel] = tempLevel; // Insert into the map only if successful
+				alllevels[curLevel] = tempLevel; // operator = of Level is being activated
 				res = true;
 			}
 		}

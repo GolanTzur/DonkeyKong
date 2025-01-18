@@ -58,7 +58,7 @@ std::map<int, Level>::iterator Game:: lvlSelect(map<int,Level>& levels)
 	currChoice = (userInput[0]-'0') * 10 + (userInput[1]-'0');
 	auto it = levels.find(currChoice);
 
-	while (it == levels.end())
+	while (it == levels.end()) //Bad choice
 	{
 		cout << "Wrong choice, Try again" << endl;
 		userInput[0] = _getch();
@@ -501,7 +501,7 @@ void Game:: restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels,
 
 void Game::run()
 {
-	bool gameRunning = false;
+	bool gameRunning = false, exit = false;
 	bool gameValid;
 	int menuOption = 0;
 
@@ -517,7 +517,7 @@ void Game::run()
 		return;
 	}
 
-	while (true) {
+	while (!exit) {
 		if (menuOption == 0) //True in the first stage only, thus we can check whether files didnt load
 			startMenu(false);
 		else
@@ -529,11 +529,11 @@ void Game::run()
 		switch (menuOption)
 		{
 		case 1:
+
 			currMapIndex = lvlSelect(alllevels);
 			currLvl = currMapIndex->second;
 			setLevel(&(currLvl));
 			gameRunning = true;
-
 			levelsleft = std::distance(currMapIndex, alllevels.end()); //How many levels left to play (relevant to the final score)
 			lives = 3;
 			break;
@@ -544,6 +544,8 @@ void Game::run()
 		case 9:
 			// Exit the game
 			std::cout << "\nExiting game...\n";
+			gameRunning = false;
+			exit = true;
 			break;  // Exit the program
 		default:
 			// Invalid option
@@ -562,6 +564,7 @@ void Game::run()
 			Player mario('@',currLevel->getstartPosMario());
 			Player pauline('$',currLevel->getstartPosPauline());
 			Player donkeyKong('&',currLevel->getstartPosDonkeyKong());
+
 			Hammer hammer(currLevel->getHammer());
 
 			
@@ -999,7 +1002,6 @@ void Game::run()
 				
 				if (timetonextbarrel == currSettings.intervalsBetweenBarrels[currbarrelindex]) //Time to add next barrel
 				{
-					
 					barrels.push_back(Barrel(donkeyKong.getPos(), currSettings.dirs[currbarrelindex]));
 					currbarrelindex++;
 					if (currbarrelindex == currSettings.size)
