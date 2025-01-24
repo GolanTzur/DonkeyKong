@@ -412,6 +412,7 @@ void Game::ghostsChangeDir(vector<Ghost>& ghosts, char board[][GameConfig::WIDTH
 					
 					if (abs(floordiv[i].at(j)->getPos().getX() - floordiv[i].at(k)->getPos().getX()) <= 2)
 					{
+
 						if (floordiv[i].at(j)->getDir() == GameConfig::STAY) //Direction will be set by the other ghost
 						{
 							if(floordiv[i].at(k)->getDir() == GameConfig::LEFT)
@@ -546,16 +547,26 @@ void Game::printMarioTrace(const Player& mario,const int& climb)
 	std::cout << " ";
 
 	//Print ' ' after the hammer if mario owns it
-	if (mario.getHammer() != GameConfig::ARROWKEYS::STAY && climb == 0 && (mario.getDir() == GameConfig::STAY || mario.getDir() == GameConfig::LEFT || mario.getDir() == GameConfig::RIGHT))
+	if (mario.getHammer() != GameConfig::ARROWKEYS::STAY && (mario.getDir() == GameConfig::STAY || mario.getDir() == GameConfig::LEFT || mario.getDir() == GameConfig::RIGHT|| (mario.getDir() == GameConfig::UP&&climb)|| mario.getDir() == GameConfig::DOWN))
 	{
 		if (mario.getHammer() == GameConfig::ARROWKEYS::RIGHT)
 		{
 			gotoxy(mario.getPos().getX() + 1, mario.getPos().getY() - 1);
 			std::cout << " ";
 		}
-		else
+		else if(mario.getHammer()==GameConfig::ARROWKEYS::LEFT)
 		{
 			gotoxy(mario.getPos().getX() - 1, mario.getPos().getY() - 1);
+			std::cout << " ";
+		}
+		else if (mario.getHammer() == GameConfig::ARROWKEYS::UP)
+		{
+			gotoxy(mario.getPos().getX(), mario.getPos().getY() - 1);
+			std::cout << " ";
+		}
+		else //Hammer operates down
+		{
+			gotoxy(mario.getPos().getX(), mario.getPos().getY() + 1);
 			std::cout << " ";
 		}
 
@@ -591,6 +602,7 @@ void Game::pauseGame(const Player& mario,const vector<Barrel>& barrels, const ve
 }
 void Game:: restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost>* ghosts,const vector<Ghost>& initposesghosts)
 {
+	printMarioTrace(*mario, *climb);
 	//Mario initial position
 	mario->setPos({ marioStartPos.getX(), marioStartPos.getY() });
 	mario->setDir(GameConfig::STAY);
@@ -641,6 +653,7 @@ void Game::run()
 			gameRunning = true;
 			levelsleft = std::distance(currMapIndex, alllevels.end()); //How many levels left to play (relevant to the final score)
 			lives = 3;
+			score = 999;
 			break;
 		case 8:
 			// Show instructions
@@ -812,15 +825,11 @@ void Game::run()
 							}
 							else //On climb mode
 							{
+								
 								if (mario.getDir() == GameConfig::ARROWKEYS::UP || (mario.getDir() == GameConfig::ARROWKEYS::STAY && laddermotionprev == GameConfig::UP))
-								{
-
 									climb = (ladderSteps - climb) + 1;
-
-								}
 								laddermotionprev = GameConfig::ARROWKEYS::DOWN;
 								mario.setDir(GameConfig::ARROWKEYS::DOWN);
-
 							}
 							break;
 						}
@@ -856,7 +865,7 @@ void Game::run()
 										}
 									}
 								}
-								else //Hammer operates towards left
+								else if(dirhammer==GameConfig::ARROWKEYS::LEFT) //Hammer operates towards left
 								{
 		                  
 									for (int i = 0;i < barrels.size();i++)
@@ -876,6 +885,15 @@ void Game::run()
 										}
 									}
 								}
+								else if (dirhammer == GameConfig::ARROWKEYS::UP) //Hammer operates Up
+								{
+
+								}
+								else //Hammer operates down
+								{
+
+								}
+
 								break;
 							}
 						default:
@@ -885,17 +903,24 @@ void Game::run()
 					}
 					if (climb > 0) //Climb Mode
 					{
-						if ((climb == 1 && laddermotionprev == GameConfig::UP)||(climb==(ladderSteps-1)) && laddermotionprev == GameConfig::DOWN)
+						if ((climb == 1 && laddermotionprev == GameConfig::UP) || ((climb == (ladderSteps - 1)) && laddermotionprev == GameConfig::DOWN)|| ((climb == (ladderSteps - 2)) && laddermotionprev == GameConfig::DOWN && mario.getHammer()!=GameConfig::STAY)) //in the same level of the floor
 						{
-
 							int floortoCheck = getFloor(mario.getPos().getY()) + 1;
 							if (floortoCheck >= 7) floortoCheck = 7;
 							if (laddermotionprev == GameConfig::UP) floortoCheck--;
 							char element = currLevel->getBoardValue(floortoCheck, (mario.getPos().getX()) - (GameConfig::MIN_X + 1));
+
 							if (laddermotionprev == GameConfig::UP)
-							gotoxy(mario.getPos().getX(), mario.getPos().getY()+1);
+								gotoxy(mario.getPos().getX(), mario.getPos().getY() + 1);
 							else
-								gotoxy(mario.getPos().getX(), mario.getPos().getY());
+							{
+								if (climb == (ladderSteps - 1))
+									gotoxy(mario.getPos().getX(), mario.getPos().getY());
+								else
+									gotoxy(mario.getPos().getX(), mario.getPos().getY() - 1);
+							}
+								
+
 							if (element != 0)
 							{
 								switch (element)
@@ -912,10 +937,15 @@ void Game::run()
 								}
 							}
 						}
-
+						if (climb == 2 && laddermotionprev == GameConfig::DOWN)
+						{
+							if(mario.getHammer()!=GameConfig::STAY)
+							  mario.setHammer(GameConfig::ARROWKEYS::UP);
+						}
+						
 						if (mario.getDir() != GameConfig::ARROWKEYS::STAY)
 							climb--;
-						if (climb == 0)
+						if (climb == 0) //Finished climbing
 							mario.setDir(GameConfig::ARROWKEYS::STAY);
 					}
 					else if (descent > 0) //Falling Down
@@ -1176,7 +1206,12 @@ void Game::run()
 				printLives(lives,currLevel->getLegendPos());
 
 				if (climb > 0)
+				{
 					mario.draw(true);
+					//cout << climb;
+					//laddermotionprev == GameConfig::UP ? cout << 8 : cout << 9;
+				}
+					
 				else
 					mario.draw();
 
@@ -1244,12 +1279,11 @@ void Game::run()
 							<< setw(2) << setfill('0') << seconds
 							<< endl;
 						//Show the score based on the game time and levels that played
-						int score = (GameConfig::MAXGAMESECS +20) - gamesecs+ (levelsleft*ADDITIONALSCORE);
-						score > 20 ? std::cout << "Score : " << score<<endl : std::cout << "Score : 20"<<endl;
-
+						std::cout << "Score: " << score << std::endl;
 						gameRunning = false;
 						std::cout << "Press any key to continue";
 						_getch();
+
 						
 					}
 						
