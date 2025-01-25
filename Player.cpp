@@ -6,11 +6,11 @@
 
 using namespace std;
 
-void Player::setDir(GameConfig::ARROWKEYS newdir)
+void Player::setDir(GameConfig::ARROWKEYS newdir,bool sethammerdir)
 {
 	MovableObject::setDir(newdir);
 
-	if (dirHammer != GameConfig::ARROWKEYS::STAY) //There is a hammer
+	if (dirHammer != GameConfig::ARROWKEYS::STAY && sethammerdir) //There is a hammer
 	{
 		if (newdir == GameConfig::ARROWKEYS::LEFT)
 			dirHammer = GameConfig::ARROWKEYS::LEFT;

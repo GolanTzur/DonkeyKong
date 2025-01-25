@@ -963,7 +963,7 @@ void Game::run()
 										mario.setDir(GameConfig::ARROWKEYS::UPANDRIGHT);
 
 									else //Current state is stay or down
-										mario.setDir(GameConfig::ARROWKEYS::UP);
+										mario.setDir(GameConfig::ARROWKEYS::UP,false);
 
 								}
 							}
@@ -1198,7 +1198,7 @@ void Game::run()
 						}
 					}
 				}
-				else
+				else //Jump
 				{
 					if (wPressed - 1 == GameConfig::JUMPSECS / 2)
 					{
@@ -1213,7 +1213,7 @@ void Game::run()
 						}
 
 						else // Current State is Up
-							mario.setDir(GameConfig::ARROWKEYS::DOWN);
+							mario.setDir(GameConfig::ARROWKEYS::DOWN,false);
 					}
 					wPressed--;
 					if (wPressed == 0)
@@ -1378,14 +1378,10 @@ void Game::run()
 				printLives(lives,currLevel->getLegendPos());
 
 				if (climb > 0)
-				{
 					mario.draw(true);
-					//cout << climb;
-					//laddermotionprev == GameConfig::UP ? cout << 8 : cout << 9;
-				}
-					
 				else
 					mario.draw();
+				pauline.draw();
 
 				for (auto& barel : barrels) //Draw the barrels
 					barel.draw();
