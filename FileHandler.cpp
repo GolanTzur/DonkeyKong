@@ -261,15 +261,16 @@ bool FileHandler::readFileContent(const string& name, Level& tobuild)
 					tobuild.setHammer(Hammer({ GameConfig::MIN_X + (j - 1),currFloor }));
 					foundHammerPos = true;
 				}
-
-				else if (line[j] == 'x')
+				else if (line[j] == 'x' || line[j]=='X')
 				{
-
 					int ghostXcoor = GameConfig::MIN_X + (j - 1);
-					tobuild.getGhosts().push_back(Point(ghostXcoor, currFloor));
 					ghostXcoordinates.push_back(ghostXcoor);
-
+					if(line[j]=='x') //Regular ghost
+					  tobuild.getGhosts().push_back(new Ghost(Point(ghostXcoor, currFloor)));
+					else //Climbing ghost
+						tobuild.getGhosts().push_back(new ClimbingGhost(Point(ghostXcoor, currFloor)));
 				}
+			
 				else if (line[j] == 'L')
 				{
 					if (foundLegendPos == true)

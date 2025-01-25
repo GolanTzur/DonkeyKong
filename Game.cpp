@@ -195,8 +195,50 @@ bool Game:: LeaveLadder(const Point& currPos,const Ladder& lad, GameConfig::ARRO
 	return false;
 }
 
+bool Game:: nearLadder(ClimbingGhost* clgh,const Ladder lad[],const int& size)
+{
+	bool res=false;
+	for (int i = 0; i < size; i++)
+	{
+		//Check upwards
+		if (!clgh->getClimb()[0]) //Ladder upwards not found
+		{
+			for (int currfloor = lad[i].getPos().getY(); currfloor > lad[i].getPos().getY() - lad[i].getSteps(); currfloor -= GameConfig::FLOORDIFF)
+			{
 
-int Game:: nearLadder(Player* player, Ladder lad[], int size, GameConfig::ARROWKEYS dir, int* ladderindex, int* climb) //Checks if mario is near a ladder
+				if (clgh->getPos().getY() == currfloor && (clgh->getPos().getX() == lad[i].getPos().getX()))
+				{
+					clgh->getIndexofcurrladder()[0] = i;
+					clgh->getClimb()[0] = currfloor - (lad[i].getPos().getY() - lad[i].getSteps());
+					clgh->getLadderSteps()[0] = lad[i].getSteps();
+					res = true;
+				}
+
+			}
+		}
+
+		//Check downwards
+		if (!clgh->getClimb()[1]) //Ladder downwards not found
+		{
+			for (int currfloor = lad[i].getPos().getY() - lad[i].getSteps(); currfloor < lad[i].getPos().getY(); currfloor += GameConfig::FLOORDIFF)
+			{
+
+				if (clgh->getPos().getY() == currfloor && (clgh->getPos().getX() == lad[i].getPos().getX()))
+				{
+					clgh->getIndexofcurrladder()[1] = i;
+					clgh->getClimb()[1] = (lad[i].getPos().getY())-currfloor;
+					clgh->getLadderSteps()[1] = lad[i].getSteps();
+					res = true;
+				}
+
+
+			}
+		}
+	}
+	return res;
+}
+
+int Game::nearLadder(Player* player, Ladder lad[], int size, GameConfig::ARROWKEYS dir, int* ladderindex, int* climb) //Checks if mario is near a ladder
 {
 	int distance;
 	if (dir == GameConfig::UP) //Dir is UP
@@ -233,7 +275,7 @@ int Game:: nearLadder(Player* player, Ladder lad[], int size, GameConfig::ARROWK
 					if (distance == 1)
 						player->setPos({ player->getPos().getX() - 1, player->getPos().getY() });
 					if (distance == -1)
-						player->setPos({player->getPos().getX() + 1, player->getPos().getY()});
+						player->setPos({ player->getPos().getX() + 1, player->getPos().getY() });
 					*ladderindex = i;
 					*climb = (lad[i].getPos().getY() - currfloor) + 1;
 					return lad[i].getSteps() + 1;
@@ -371,24 +413,55 @@ bool Game:: marioHitsBarrel(vector<Barrel>& barrels,const Player& mario)
 	}
 	return false;
 }
-bool Game::marioHitsGhost(vector<Ghost>& ghosts,const Player& mario)
+bool Game::marioHitsGhost(vector<Ghost*>& ghosts,const Player& mario)
 {
 	for (auto& ghost : ghosts)
 	{
-		if (mario.getPos() == ghost.getPos())
+		if (mario.getPos() == ghost->getPos())
 			return true;
 	}
 	return false;
 }
-void Game::ghostsChangeDir(vector<Ghost>& ghosts, char board[][GameConfig::WIDTH - 2])
+void Game::regularMoveGhost(Ghost* gh)
 {
-	vector<Ghost*> floordiv[8];
+	char num;
+	if (gh->getDir() == GameConfig::ARROWKEYS::STAY) //In stay mode we will choose randomly where to go
+	{
+		num = rand() % 2;
+		num == 0 ? gh->setDir(GameConfig::LEFT) :gh->setDir(GameConfig::RIGHT);
+	}
+	else
+	{
+		num = rand() % 20;
+		if (num == 0)
+			gh->getDir() == GameConfig::ARROWKEYS::RIGHT ? gh->setDir(GameConfig::LEFT) : gh->setDir(GameConfig::RIGHT);
+	}
+}
+void Game::ghostsChangeDir(vector<Ghost*> ghosts, char board[][GameConfig::WIDTH - 2],Ladder lad[],int size)
+{
+	vector <Ghost*> floordiv[8];
+	vector <ClimbingGhost*> onLadders;
 
-	// Dividing the existing ghosts into subvectors by their floors
+	// Dividing the existing ghosts into subvectors by their floors separated from the climbing ones
 	for (auto& ghost : ghosts)
 	{
-		int currfloor = getFloor(ghost.getPos().getY());
-		floordiv[currfloor].push_back(&ghost);
+		ClimbingGhost* curr = dynamic_cast<ClimbingGhost*>(ghost);
+
+		if (curr != nullptr) //Check if the ghost is a climbing one
+		{
+			if (curr->getClimb()[0] == 0 && curr->getClimb()[1]==0) //Wandering a floor
+			{
+				int currfloor = getFloor(curr->getPos().getY());
+				floordiv[currfloor].push_back(curr);
+			}
+			else //Climbs a ladder
+				onLadders.push_back(curr);
+		}
+		else //The ghost is not climbing and therefore he has a floor 
+		{
+			int currfloor = getFloor(ghost->getPos().getY());
+			floordiv[currfloor].push_back(ghost);
+		}
 	}
 
 	// Check for multiple ghosts on the same floor
@@ -452,26 +525,108 @@ void Game::ghostsChangeDir(vector<Ghost>& ghosts, char board[][GameConfig::WIDTH
 					changedDirs[j] = true;
 				}
 
-				if (!changedDirs[j])
+				ClimbingGhost* curr = dynamic_cast<ClimbingGhost*>(floordiv[i].at(j));
+				bool nearLad;
+
+				if (curr != nullptr &&(nearLad=nearLadder(curr, lad, size))) //There is an option to climb or tumble ladder (0.5 chance)
 				{
-
 					char num;
-					if (floordiv[i].at(j)->getDir() == GameConfig::ARROWKEYS::STAY) //In stay mode we will choose randomly where to go
+					
+					if (curr->getClimb()[0] && curr->getClimb()[1]) //Can go both up and down
 					{
+						num = rand() % 4;
+						if (num < 2) //0 for up, 1 for down
+						{
+							curr->setArrIndex(num);
+							num == 0 ? curr->setDir(GameConfig::UP) : curr->setDir(GameConfig::DOWN);
+						}
+						else  //not climb a ladder, therefore continue regularlly
+						{
+							curr->Reset();
+							curr->setDir(GameConfig::STAY);
+							if (!changedDirs[j])
+								regularMoveGhost(curr);
+						}
+					}
+					else //Can Go up Or down
+					{
+						int index;
+						curr->getClimb()[0] > 0 ? index = 0 : index = 1;
 						num = rand() % 2;
-						num == 0 ? floordiv[i].at(j)->setDir(GameConfig::LEFT) : floordiv[i].at(j)->setDir(GameConfig::RIGHT);
-					}
-					else
-					{
-						num = rand() % 20;
-						if (num == 0)
-							floordiv[i].at(j)->getDir() == GameConfig::ARROWKEYS::RIGHT ? floordiv[i].at(j)->setDir(GameConfig::LEFT) : floordiv[i].at(j)->setDir(GameConfig::RIGHT);
-					}
-				}
 
-				
+						if (num == 0) // Go to ladder
+						{
+							curr->setArrIndex(index);
+							index==0 ? curr->setDir(GameConfig::UP) : curr->setDir(GameConfig::DOWN);
+						}
+						else  //not climb a ladder, therefore continue regularlly
+						{
+							curr->Reset();
+							curr->setDir(GameConfig::STAY);
+							if (!changedDirs[j])
+								regularMoveGhost(curr);
+						}
+					}
+					
+				}
+				else if (!changedDirs[j])
+					regularMoveGhost(floordiv[i].at(j));
+
 			}
 			delete[] changedDirs;
+	}
+
+	//The climbing ones
+	for (ClimbingGhost* cgh : onLadders)
+	{
+		int currIndex = cgh->getarrIndex();
+		int distFromFloor = cgh->getLadderSteps()[currIndex] - cgh->getClimb()[currIndex];
+		//gotoxy(cgh->getPos().getX()+1, cgh->getPos().getY());
+		//cout << cgh->getClimb()[currIndex]<<" "<< currIndex;
+
+		if (cgh->getClimb()[cgh->getarrIndex()] == 0) //finished climbing or tumblimg
+		{
+			cgh->Reset();
+			cgh->setDir(GameConfig::STAY);
+		}
+		else if ((cgh->getarrIndex() == 0 && cgh->getClimb()[currIndex]==1) || (cgh->getarrIndex() == 1 && cgh->getLadderSteps()[currIndex] - cgh->getClimb()[currIndex]==1)) //ghost is climbing ir tumbling through a floor
+		{
+			int floortoCheck = getFloor(cgh->getPos().getY())+1;
+			char element = currLevel->getBoardValue(floortoCheck, (cgh->getPos().getX()) - (GameConfig::MIN_X + 1));
+			if(distFromFloor%3==2) //Moving up
+			    gotoxy(cgh->getPos().getX(), cgh->getPos().getY());
+			else //Moving down
+				gotoxy(cgh->getPos().getX(), cgh->getPos().getY());
+			if (element != 0)
+			{
+				switch (element)
+				{
+				case 1:
+					std::cout << '=';
+					break;
+				case 2:
+					std::cout << '>';
+					break;
+				case 3:
+					std::cout << '<';
+					break;
+				}
+			}
+		}
+		else if (distFromFloor / 3 > 0 && distFromFloor % 3 == 0) //reached a floor
+		{
+			int floor = getFloor(cgh->getPos().getY());
+			if (board[floor][cgh->getPos().getX() - (GameConfig::MIN_X + 1) - 1] != 0 || board[floor][cgh->getPos().getX() - (GameConfig::MIN_X + 1) + 1] != 0) //Available to leave ladder
+			{
+				char num = rand() % 4; //A chance of 0.25 to leave
+				if (num == 0)
+				{
+					cgh->setDir(GameConfig::STAY);
+					cgh->Reset();
+				}
+			}
+		}
+		
 	}
 }
 
@@ -530,12 +685,16 @@ GameConfig::ARROWKEYS Game:: ghostReachedEdge(Ghost* gh, char board[][GameConfig
 
 
 
-void Game::printGhostsTraces(const vector<Ghost>& ghosts)
+void Game::printGhostsTraces(const vector<Ghost*>& ghosts)
 {
 	for (auto& ghost : ghosts)
 	{
-		gotoxy(ghost.getPos().getX(), ghost.getPos().getY());
-		std::cout << ' ';
+		ClimbingGhost* cg = dynamic_cast<ClimbingGhost*>(ghost);
+		if (cg == nullptr || cg->getarrIndex() == -1||(cg->getarrIndex() != -1 && cg->getClimb()[cg->getarrIndex()]==0)) //The ghost is not climbing
+		{
+			gotoxy(ghost->getPos().getX(), ghost->getPos().getY());
+			std::cout << ' ';
+		}
 	}
 }
 
@@ -572,7 +731,7 @@ void Game::printMarioTrace(const Player& mario,const int& climb)
 
 	}
 }
-void Game::pauseGame(const Player& mario,const vector<Barrel>& barrels, const vector<Ghost>& ghosts,const int& climb)
+void Game::pauseGame(const Player& mario,const vector<Barrel>& barrels, const vector<Ghost*>& ghosts,const int& climb)
 {
 	gotoxy(0, GameConfig::HEIGHT + GameConfig::MIN_Y + 1);
 	std::cout << "Game Paused";
@@ -581,7 +740,7 @@ void Game::pauseGame(const Player& mario,const vector<Barrel>& barrels, const ve
 	for (auto& bar : barrels)
 		bar.draw();
 	for (auto& ghost : ghosts) //draw the ghosts
-		ghost.draw();
+		ghost->draw();
 	while (keyPressed != GameConfig::ESC)
 	{
 		if (_kbhit())
@@ -600,7 +759,7 @@ void Game::pauseGame(const Player& mario,const vector<Barrel>& barrels, const ve
 	gotoxy(0, GameConfig::HEIGHT +GameConfig::MIN_Y + 1);
 	std::cout << "            ";
 }
-void Game:: restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost>* ghosts,const vector<Ghost>& initposesghosts)
+void Game:: restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost*>* ghosts,const vector<Ghost*>& initposesghosts)
 {
 	printMarioTrace(*mario, *climb);
 	//Mario initial position
@@ -714,7 +873,7 @@ void Game::run()
 			int currbarrelindex = 0;
 
 			//Ghosts
-			vector<Ghost>activeghosts = currLevel->getGhosts(); //Create a copy of the ghosts vector to allow returning to their opening points
+			vector<Ghost*>activeghosts = currLevel->getGhosts(); //Create a copy of the ghosts vector to allow returning to their opening points
 
 
 			do {
@@ -841,7 +1000,7 @@ void Game::run()
 							break;
 						case 'p':
 						case 'P':
-							if (climb == 0&&mario.getHammer()!=GameConfig::STAY) //Mario is able to use the hammer
+							if (mario.getHammer()!=GameConfig::STAY) //Mario is able to use the hammer
 							{
 								GameConfig::ARROWKEYS dirhammer = mario.getHammer();
 								if (dirhammer == GameConfig::ARROWKEYS::RIGHT)
@@ -857,7 +1016,7 @@ void Game::run()
 									}
 									for (int i = 0;i < activeghosts.size();i++)
 									{
-										if (activeghosts.at(i).getPos().getX() > mario.getPos().getX() && mario.getPos().calculateDistance(activeghosts.at(i).getPos()) <= 2)
+										if (activeghosts.at(i)->getPos().getX() > mario.getPos().getX() && mario.getPos().calculateDistance(activeghosts.at(i)->getPos()) <= 2)
 										{
 											activeghosts.erase(activeghosts.begin() + i);
 											updateScore(200);
@@ -878,20 +1037,34 @@ void Game::run()
 									}
 									for (int i = 0;i < activeghosts.size();i++)
 									{
-										if (activeghosts.at(i).getPos().getX() < mario.getPos().getX() && mario.getPos().calculateDistance(activeghosts.at(i).getPos()) <= 2)
+										if (activeghosts.at(i)->getPos().getX() < mario.getPos().getX() && mario.getPos().calculateDistance(activeghosts.at(i)->getPos()) <= 2)
 										{
 											activeghosts.erase(activeghosts.begin() + i);
 											i--;
 										}
 									}
 								}
-								else if (dirhammer == GameConfig::ARROWKEYS::UP) //Hammer operates Up
+								else if (dirhammer == GameConfig::ARROWKEYS::UP) //Hammer operates Up, works only on climbing ghosts
 								{
-
+									for (int i = 0;i < activeghosts.size();i++)
+									{
+										if (activeghosts.at(i)->getPos().getX() == mario.getPos().getX() && mario.getPos().getY() - activeghosts.at(i)->getPos().getY() <= 2 && mario.getPos().getY() - activeghosts.at(i)->getPos().getY()>=0)
+										{
+											activeghosts.erase(activeghosts.begin() + i);
+											i--;
+										}
+									}
 								}
 								else //Hammer operates down
 								{
-
+									for (int i = 0;i < activeghosts.size();i++)
+									{
+										if (activeghosts.at(i)->getPos().getX() == mario.getPos().getX() &&  activeghosts.at(i)->getPos().getY() - mario.getPos().getY() <= 2 && activeghosts.at(i)->getPos().getY() - mario.getPos().getY() >= 0)
+										{
+											activeghosts.erase(activeghosts.begin() + i);
+											i--;
+										}
+									}
 								}
 
 								break;
@@ -1138,7 +1311,6 @@ void Game::run()
 				
 				if (timetonextbarrel == currSettings.intervalsBetweenBarrels[currbarrelindex]) //Time to add next barrel
 				{
-					
 					barrels.push_back(Barrel(donkeyKong.getPos(), currSettings.dirs[currbarrelindex]));
 					currbarrelindex++;
 					if (currbarrelindex == currSettings.size)
@@ -1153,14 +1325,14 @@ void Game::run()
 					lives--;
 					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts());
 				}
-				ghostsChangeDir(activeghosts, currLevel->getBoardPointer());
 
-
+				ghostsChangeDir(activeghosts, currLevel->getBoardPointer(),currLevel->getLadders(),currLevel->getNumLadders());
+				
 
 				for (auto& barel : barrels) //Move the barrels
 					barel.move();
 				for (auto& ghost : activeghosts) //Move the ghosts
-					ghost.move();
+					ghost->move();
 
 
 				if (marioHitsBarrel(barrels, mario)||marioHitsGhost(activeghosts,mario))
@@ -1218,7 +1390,7 @@ void Game::run()
 				for (auto& barel : barrels) //Draw the barrels
 					barel.draw();
 				for (auto& ghost : activeghosts) //draw the ghosts
-					ghost.draw();
+					ghost->draw();
 
 				hammer.draw();
 

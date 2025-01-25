@@ -9,6 +9,9 @@ Level::~Level() {
     delete[] ladders;
     delete[]barrelsSets.intervalsBetweenBarrels;
     delete[]barrelsSets.dirs;
+
+    for (Ghost* g : ghosts)
+        delete g;
 }
 
 // Setters and Getters for the board
@@ -128,7 +131,17 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
 
 
             //Deep copy of the ghosts
-            ghosts = other.ghosts;
+            for (Ghost* gh : other.ghosts)
+            {
+                ClimbingGhost* casttoclimb = dynamic_cast<ClimbingGhost*>(gh);
+                if (casttoclimb == nullptr)
+                    ghosts.push_back(new Ghost(*gh)); //copy ctor
+                else
+                    ghosts.push_back(new ClimbingGhost(*casttoclimb));
+            }
+               
+            
+            
 
             //copy of other gamePositions
             startPosMario = other.startPosMario;
@@ -165,12 +178,12 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
         barrelsSets.intervalsBetweenBarrels = nullptr;
         barrelsSets.dirs = nullptr;
 
-        ghosts = vector<Ghost>();
+        ghosts = vector<Ghost*>();
         setLegendPos({ GameConfig::LEGENDXCOOR,GameConfig::LEGENDYCOOR });
 
     }
 
-    void Level::initializeBoard1()
+    /*void Level::initializeBoard1()
     {
         int i;
 
@@ -461,5 +474,5 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
         ghosts.push_back(Point(GameConfig::MIN_X + 40, GameConfig::FLOOR5-1));
         ghosts.push_back(Point(GameConfig::MIN_X + 60, GameConfig::FLOOR6-1));
     }
-
+    */
 

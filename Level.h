@@ -9,6 +9,7 @@
 #include "Ghost.h"
 #include "Hammer.h"
 #include <vector>
+#include "ClimbingGhost.h"
 
 using namespace std;
 
@@ -24,7 +25,7 @@ class Level {
     Hammer hammer;
     Point legendPos;
     LevelSettings barrelsSets;
-    vector <Ghost> ghosts;
+    vector <Ghost*> ghosts;
 
 public:
 
@@ -38,8 +39,8 @@ public:
     void addLadder(Ladder ladder);
     Ladder getLadder(int index) const;
     Ladder* getLadders() const { return ladders; }
-    vector<Ghost>& getGhosts()  { return ghosts;}
-    void addGhost(const Ghost g) { ghosts.push_back(g); }
+    vector<Ghost*>& getGhosts()  { return ghosts;}
+    void addGhost(Ghost* g) { ghosts.push_back(g); }
     int getNumLadders() const;
     void printBoard() const;
     void printLadders()const;
