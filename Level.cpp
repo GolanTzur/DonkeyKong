@@ -12,6 +12,7 @@ Level::~Level() {
 
     for (Ghost* g : ghosts)
         delete g;
+    ghosts.clear();
 }
 
 // Setters and Getters for the board
@@ -131,6 +132,7 @@ char(*Level::getBoardPointer())[GameConfig::WIDTH - 2] {
 
 
             //Deep copy of the ghosts
+            ghosts.clear();
             for (Ghost* gh : other.ghosts)
             {
                 ClimbingGhost* casttoclimb = dynamic_cast<ClimbingGhost*>(gh);
