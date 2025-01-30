@@ -115,7 +115,8 @@ void Game::printFloorTrace(const MovableObject* obj,char board[][GameConfig::WID
 	
 	if (floor==-1||(distancefromfloor == GameConfig::FLOORDIFF - 1)||hammer)
 	{
-		char element = board[floor + 1][obj->getPos().getX() - (GameConfig::MIN_X + 1)];
+		char element;
+		 element = board[floor + 1][obj->getPos().getX() - (GameConfig::MIN_X + 1)];
 		if(!hammer)
 		    gotoxy(obj->getPos().getX(), obj->getPos().getY());
 		else
@@ -138,7 +139,8 @@ void Game::printFloorTrace(const MovableObject* obj,char board[][GameConfig::WID
 	}
 	else if (distancefromfloor == 0)
 	{
-		char element = board[floor + 1][obj->getPos().getX() - (GameConfig::MIN_X + 1)];
+		char element;
+		element = board[floor][obj->getPos().getX() - (GameConfig::MIN_X + 1)];
 		gotoxy(obj->getPos().getX(), obj->getPos().getY()+1);
 		if (element != 0)
 		{
