@@ -14,6 +14,9 @@
 #include <map>
 #include <string>
 #include "FileHandler.h"
+#include <ctime>
+#include <sstream>
+#include <cstdlib>   // For srand() and rand()
 
 #define INTERVAL 170
 #define SECOND 1000
@@ -55,6 +58,10 @@ class Game
 	 void printGhostsTraces(const vector<Ghost*>& ghosts);
 	 void printMarioTrace(const Player& mario, const int& climb);
 	 void pauseGame(const Player& mario, const vector<Barrel>& barrels, const vector<Ghost*>& ghosts, const int& climb);
-	 void restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost*>* ghosts, const vector<Ghost*>& initposesghosts);
-	 void run();
+	 void restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost*>* ghosts, const vector<Ghost*>& initposesghosts,bool printtrace);
+	 void run(bool savemode);
+	 void saveSeed(unsigned int seed, ofstream& file) { if (file) file << seed; }
+	 unsigned int setSeed() { return static_cast<unsigned int>(std::time(nullptr)); };
+	 void reduceLivesSaveMode(ofstream& resfile,const int& timePoint,const int& lives);
+	 //bool checkLadderTrace
 };

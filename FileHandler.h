@@ -8,6 +8,7 @@
 #include <string>
 #include <algorithm>
 #include <fstream>
+#include <cstdio>
 #include <cctype> // for std::isspace
 
 
@@ -25,9 +26,11 @@ private:
 	 static int checkFileNameValidity(const string& name);
 	 static bool readFileContent(const string& name,Level& tobuild);
 	 static int getFloorFile(int numline);
+	 
 
 public:
 	static bool loadAllFiles(map<int, Level>& alllevels);
+	static void deleteDocFiles();
 
 };
 

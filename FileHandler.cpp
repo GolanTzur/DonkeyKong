@@ -430,3 +430,13 @@ bool FileHandler::readFileContent(const string& name, Level& tobuild)
 	}
 		
 }
+void FileHandler::deleteDocFiles()
+{
+	for (const auto& entry : fs::directory_iterator(fs::current_path()))
+	{
+		int curLevel;
+		string currFilename = entry.path().filename().string();
+		if (ends_with(currFilename,".steps")||ends_with(currFilename,".result"))	
+			fs::remove(currFilename);
+	}
+}

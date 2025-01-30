@@ -759,8 +759,9 @@ void Game::pauseGame(const Player& mario,const vector<Barrel>& barrels, const ve
 	gotoxy(0, GameConfig::HEIGHT +GameConfig::MIN_Y + 1);
 	std::cout << "            ";
 }
-void Game:: restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost*>* ghosts,const vector<Ghost*>& initposesghosts)
+void Game:: restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost*>* ghosts,const vector<Ghost*>& initposesghosts,bool printtrace)
 {
+	if(printtrace)
 	printMarioTrace(*mario, *climb);
 	//Mario initial position
 	mario->setPos({ marioStartPos.getX(), marioStartPos.getY() });
@@ -774,9 +775,31 @@ void Game:: restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels,
 	//Reset other variables
 	*timetonextbarrel = *climb = *jumpsecs = 0;
 }
+void getFilename(int levelNumber, string& stepsname,string& resultname)
+{
+	std::ostringstream oss;
+
+	oss << std::setw(2) << std::setfill('0') << levelNumber;
+	std::string str = oss.str();
+
+	stepsname.append("dkong_");
+	stepsname.append(str);
+	stepsname.append(".steps");
+
+	resultname.append("dkong_");
+	resultname.append(str);
+	resultname.append(".result");
+
+}
 
 
-void Game::run()
+void Game::reduceLivesSaveMode(ofstream& resfile, const int& timePoint,const int& lives)
+{
+	if (resfile)
+		resfile << "Lives: " << lives << " " << timePoint<<endl;
+}
+
+void Game::run(bool saveMode)
 {
 	bool gameRunning = false, exit = false;
 	bool gameValid;
@@ -806,6 +829,9 @@ void Game::run()
 		switch (menuOption)
 		{
 		case 1:
+			if(saveMode)
+			  FileHandler::deleteDocFiles(); //Delete files from previous game
+
 			currMapIndex = lvlSelect(alllevels);
 			currLvl = currMapIndex->second;
 			setLevel(&(currLvl));
@@ -844,7 +870,7 @@ void Game::run()
 			Hammer hammer(currLevel->getHammer());
 
 			
-
+			
 			donkeyKong.draw();
 			pauline.draw();
 
@@ -863,8 +889,13 @@ void Game::run()
 			GameConfig::ARROWKEYS laddermotionprev;
 			int indexofCurrLadder = -1;
 
+			//The random sequence generator
+			unsigned int seed = setSeed();
+			std::srand(seed);
+
 			//GameSeconds
 			int timePlayed = 0;
+			int gameCounter = 0;
 
 			//Barrels
 			vector<Barrel> barrels;
@@ -874,10 +905,28 @@ void Game::run()
 
 			//Ghosts
 			vector<Ghost*>activeghosts = currLevel->getGhosts(); //Create a copy of the ghosts vector to allow returning to their opening points
+            
+			//Kill indicator
+			bool hammerkill=false;
 
+			//File organizing
+			ofstream steps;
+			ofstream result;
+
+			if (saveMode)
+			{
+				string stepsfilename;
+				string resultfilename;
+				getFilename(currMapIndex->first, stepsfilename, resultfilename);
+				steps.open(stepsfilename, ios_base::trunc);
+				result.open(resultfilename, ios_base::trunc);
+				steps << seed << endl;
+			}
+			
 
 			do {
 
+				hammerkill = false; //reset the bool to false
 				if (!wPressed) //Not Jump Mode
 				{
 
@@ -984,7 +1033,6 @@ void Game::run()
 							}
 							else //On climb mode
 							{
-								
 								if (mario.getDir() == GameConfig::ARROWKEYS::UP || (mario.getDir() == GameConfig::ARROWKEYS::STAY && laddermotionprev == GameConfig::UP))
 									climb = (ladderSteps - climb) + 1;
 								laddermotionprev = GameConfig::ARROWKEYS::DOWN;
@@ -1012,6 +1060,7 @@ void Game::run()
 											barrels.erase(barrels.begin() + i);
 											updateScore(150);
 											i--;
+											hammerkill = true;
 										}
 									}
 									for (int i = 0;i < activeghosts.size();i++)
@@ -1021,6 +1070,7 @@ void Game::run()
 											activeghosts.erase(activeghosts.begin() + i);
 											updateScore(200);
 											i--;
+											hammerkill = true;
 										}
 									}
 								}
@@ -1033,6 +1083,7 @@ void Game::run()
 										{
 											barrels.erase(barrels.begin() + i);
 											i--;
+											hammerkill=true;
 										}
 									}
 									for (int i = 0;i < activeghosts.size();i++)
@@ -1041,6 +1092,7 @@ void Game::run()
 										{
 											activeghosts.erase(activeghosts.begin() + i);
 											i--;
+											hammerkill=true;
 										}
 									}
 								}
@@ -1052,6 +1104,7 @@ void Game::run()
 										{
 											activeghosts.erase(activeghosts.begin() + i);
 											i--;
+											hammerkill = true;
 										}
 									}
 								}
@@ -1063,6 +1116,7 @@ void Game::run()
 										{
 											activeghosts.erase(activeghosts.begin() + i);
 											i--;
+											hammerkill = true;
 										}
 									}
 								}
@@ -1134,7 +1188,7 @@ void Game::run()
 								if (descent >= GameConfig::FLOORDIFF * 3) //Mario fell 3 floors or more
 								{
 									lives--;
-									restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed,&activeghosts,currLevel->getGhosts());
+									restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed,&activeghosts,currLevel->getGhosts(),true);
 								}
 
 								switch (mario.getDir())
@@ -1303,8 +1357,29 @@ void Game::run()
 				}
 				if (mario.getPos().getY() >=GameConfig::MIN_Y + GameConfig::HEIGHT - 1) //Mario Fell Down
 				{
+					char element = currLevel->getBoardValue(0, (mario.getPos().getX()) - (GameConfig::MIN_X + 1));
+					gotoxy(mario.getPos().getX(), mario.getPos().getY());
+					switch (element)
+					{
+					    case 0:
+							std::cout << ' ';
+							break;
+						case 1:
+							std::cout << '=';
+							break;
+						case 2:
+							std::cout << '>';
+							break;
+						case 3:
+							std::cout << '<';
+							break;
+					}
+					
+
 					lives--;
-					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts());
+					if (saveMode)
+						reduceLivesSaveMode(result, gameCounter, lives);
+					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts(),false);
 				}
 
 				//Barrels and Ghosts
@@ -1323,7 +1398,9 @@ void Game::run()
 				if (!barrelsUpdateDirs(&barrels, currLevel->getBoardPointer(), &mario))//Set the exact direction for each barrel and if barrel exploded near mario - restart the game
 				{
 					lives--;
-					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts());
+					if (saveMode)
+						reduceLivesSaveMode(result, gameCounter, lives);
+					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts(),true);
 				}
 
 				ghostsChangeDir(activeghosts, currLevel->getBoardPointer(),currLevel->getLadders(),currLevel->getNumLadders());
@@ -1339,14 +1416,18 @@ void Game::run()
 				{
 					//mario hit a barrel / ghost
 					lives--;
-					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts());
+					if (saveMode)
+						reduceLivesSaveMode(result, gameCounter, lives);
+					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts(),true);
 				}
 
 				if (barrelsCheckHits(&barrels, mario)) //delete barrels that share same position (explosion)
 				{
 					//Mario is near an explosion
 					lives--;
-					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts());
+					if (saveMode)
+						reduceLivesSaveMode(result, gameCounter, lives);
+					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts(),true);
 				}
 
 
@@ -1366,7 +1447,9 @@ void Game::run()
 				{
 					//mario hit a barrel / ghost
 					lives--;
-					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts());
+					if (saveMode)
+						reduceLivesSaveMode(result, gameCounter, lives);
+					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts(),true);
 				}
 				else if (mario.getPos() == hammer.getPos()&&hammer.getIsVisible()) //mario gets the hammer
 				{
@@ -1394,6 +1477,8 @@ void Game::run()
 
 				//Game clock is running
 				timePlayed += INTERVAL;
+				gameCounter++;
+
 				if (timePlayed >= SECOND)
 				{
 					timePlayed -= SECOND;
@@ -1408,6 +1493,14 @@ void Game::run()
 				printBarrelTraces(barrels);
 				printGhostsTraces(activeghosts);
 
+				if (saveMode) 
+				{
+					steps << gameCounter<<" ";
+					steps << mario.getDir();
+					if (hammerkill) //'p' should be pressed if there is a kill
+						steps <<" P";
+					steps<< endl;
+			    }
 
 				if (mario.getPos() == pauline.getPos())
 				{
@@ -1416,10 +1509,18 @@ void Game::run()
 				}
 			} while (lives > 0&&escPressed==false);
 
+			if (saveMode) //Anyway close the steps file when level finished
+				steps.close();
+
 			if (escPressed == false)
 			{
 				if (finished)
 				{
+					if (saveMode)
+					{
+					   result << "Lives: " << lives << " Score: " << score;
+					   result.close();
+				    }
 					gotoxy(0, GameConfig::HEIGHT +GameConfig::MIN_Y + 1);
 					std::cout << "Level Won," ;
 
@@ -1427,6 +1528,7 @@ void Game::run()
 					currMapIndex++;
 					if (currMapIndex != alllevels.end())
 					{
+						gameCounter = 0;
 						currLvl = currMapIndex->second;
 						std::cout << "Press any key to continue";
 						_getch();
@@ -1458,6 +1560,11 @@ void Game::run()
 				}
 				else
 				{
+					if (saveMode)
+					{
+						result << " Score: F";
+						result.close();
+					}
 					gotoxy(0, GameConfig::HEIGHT +GameConfig::MIN_Y + 1);
 					std::cout << "Failure," ;
 					showTime(currLevel->getLegendPos(),true);
@@ -1470,6 +1577,8 @@ void Game::run()
 			}
 			else //ESC pressed
 			{
+				if (saveMode)
+					result << " Score: ESC";
 				gameRunning = false;
 				showTime(currLevel->getLegendPos(),true);
 			}
