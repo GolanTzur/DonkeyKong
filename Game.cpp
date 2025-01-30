@@ -1579,7 +1579,10 @@ void Game::run(bool saveMode)
 			else //ESC pressed
 			{
 				if (saveMode)
+				{
 					result << " Score: ESC";
+					result.close();
+				}
 				gameRunning = false;
 				showTime(currLevel->getLegendPos(),true);
 			}
