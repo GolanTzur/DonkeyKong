@@ -17,5 +17,6 @@ public :
 	Point getPos() const { return pos; } 
 	void setPos(const Point& _newpos) { pos = _newpos; }
 	GameObject operator =(const GameObject& other);
+	virtual ~GameObject() {} //Make the class polymorphic
 };
 

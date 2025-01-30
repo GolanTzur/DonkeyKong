@@ -100,6 +100,69 @@ int Game :: getFloor(int ycoor)
 	return (((GameConfig::FLOOR1 - 1) - ycoor) / GameConfig::FLOORDIFF);
 }
 
+void Game::printFloorTrace(const MovableObject* obj,char board[][GameConfig::WIDTH - 2])
+{
+	int distancefromfloor;
+	int floor = getFloor(obj->getPos().getY());
+
+	if (floor != -1)
+		distancefromfloor = objectDistanceFloor(*obj, floor);
+	else
+		distancefromfloor = 0;
+	bool hammer=false;
+	if (const Player* player = dynamic_cast<const Player*>(obj))
+		hammer = (player->getHammer() != GameConfig::ARROWKEYS::STAY) && (distancefromfloor == GameConfig::FLOORDIFF - 2) && (player->getDir() == GameConfig::STAY || player->getDir() == GameConfig::UP || player->getDir() == GameConfig::DOWN);
+	
+	if (floor==-1||(distancefromfloor == GameConfig::FLOORDIFF - 1)||hammer)
+	{
+		char element = board[floor + 1][obj->getPos().getX() - (GameConfig::MIN_X + 1)];
+		if(!hammer)
+		    gotoxy(obj->getPos().getX(), obj->getPos().getY());
+		else
+			gotoxy(obj->getPos().getX(), obj->getPos().getY()-1);
+		if (element != 0)
+		{
+			switch (element)
+			{
+			case 1:
+				std::cout << '=';
+				break;
+			case 2:
+				std::cout << '>';
+				break;
+			case 3:
+				std::cout << '<';
+				break;
+			}
+		}
+	}
+	else if (distancefromfloor == 0)
+	{
+		char element = board[floor + 1][obj->getPos().getX() - (GameConfig::MIN_X + 1)];
+		gotoxy(obj->getPos().getX(), obj->getPos().getY()+1);
+		if (element != 0)
+		{
+			switch (element)
+			{
+			case 0:
+				break;
+			case 1:
+				std::cout << '=';
+				break;
+			case 2:
+				std::cout << '>';
+				break;
+			case 3:
+				std::cout << '<';
+				break;
+           
+			}
+		}
+	}
+
+
+}
+
 void Game:: printLives(int lives,const Point& legend)
 {
 	gotoxy(legend.getX(),legend.getY());
@@ -316,7 +379,7 @@ bool Game:: barrelsCheckHits(vector<Barrel>* barrels,const Player& playerPositio
 	return false; //Mario wasnt near a barrels hit 
 
 }
-int Game:: barrelDistanceFloor(const Barrel& bar, int floor) //The distance between the barrel and the floor
+int Game:: objectDistanceFloor(const MovableObject& bar, int floor) //The distance between the object and the floor
 {
 	return ((GameConfig::MIN_Y + GameConfig::HEIGHT - 1) - bar.getPos().getY() - (GameConfig::FLOORDIFF * floor) - 1);
 }
@@ -326,7 +389,7 @@ bool Game:: barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::
 	{
 		GameConfig::ARROWKEYS currDir = barrels->at(i).getDir();
 		int floor = getFloor(barrels->at(i).getPos().getY());
-		int barreldistfloor = barrelDistanceFloor(barrels->at(i), floor);
+		int barreldistfloor = objectDistanceFloor(barrels->at(i), floor);
 		switch (currDir)
 		{
 
@@ -375,7 +438,7 @@ bool Game:: barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::
 						barrels->at(i).setDir(GameConfig::ARROWKEYS::LEFT);
 				}
 			}
-			else if (barreldistfloor == GameConfig::FLOORDIFF - 1 && board[floor + 1][barrels->at(i).getPos().getX() - (GameConfig::MIN_X + 1)] != 0) //Barrel hits a brick while falling
+			/*else if (barreldistfloor == GameConfig::FLOORDIFF - 1 && board[floor + 1][barrels->at(i).getPos().getX() - (GameConfig::MIN_X + 1)] != 0) //Barrel hits a brick while falling
 			{
 
 				char element = board[floor + 1][barrels->at(i).getPos().getX() - (GameConfig::MIN_X + 1)];
@@ -395,8 +458,10 @@ bool Game:: barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::
 						break;
 					}
 				}
-			}
-			break;
+			}*/
+			else if (barreldistfloor == GameConfig::FLOORDIFF - 1)
+				printFloorTrace(&(barrels->at(i)), board);
+			
 		}
 		}
 	  
@@ -581,8 +646,7 @@ void Game::ghostsChangeDir(vector<Ghost*> ghosts, char board[][GameConfig::WIDTH
 	{
 		int currIndex = cgh->getarrIndex();
 		int distFromFloor = cgh->getLadderSteps()[currIndex] - cgh->getClimb()[currIndex];
-		//gotoxy(cgh->getPos().getX()+1, cgh->getPos().getY());
-		//cout << cgh->getClimb()[currIndex]<<" "<< currIndex;
+		
 
 		if (cgh->getClimb()[cgh->getarrIndex()] == 0) //finished climbing or tumblimg
 		{
@@ -591,29 +655,9 @@ void Game::ghostsChangeDir(vector<Ghost*> ghosts, char board[][GameConfig::WIDTH
 		}
 		else if ((cgh->getarrIndex() == 0 && cgh->getClimb()[currIndex]==1) || (cgh->getarrIndex() == 1 && cgh->getLadderSteps()[currIndex] - cgh->getClimb()[currIndex]==1)) //ghost is climbing ir tumbling through a floor
 		{
-			int floortoCheck = getFloor(cgh->getPos().getY())+1;
-			char element = currLevel->getBoardValue(floortoCheck, (cgh->getPos().getX()) - (GameConfig::MIN_X + 1));
-			if(distFromFloor%3==2) //Moving up
-			    gotoxy(cgh->getPos().getX(), cgh->getPos().getY());
-			else //Moving down
-				gotoxy(cgh->getPos().getX(), cgh->getPos().getY());
-			if (element != 0)
-			{
-				switch (element)
-				{
-				case 1:
-					std::cout << '=';
-					break;
-				case 2:
-					std::cout << '>';
-					break;
-				case 3:
-					std::cout << '<';
-					break;
-				}
-			}
+			printFloorTrace(cgh, board);
 		}
-		else if (distFromFloor / 3 > 0 && distFromFloor % 3 == 0) //reached a floor
+		else if (distFromFloor / GameConfig::FLOORDIFF > 0 && distFromFloor % GameConfig::FLOORDIFF == 0) //reached a floor
 		{
 			int floor = getFloor(cgh->getPos().getY());
 			if (board[floor][cgh->getPos().getX() - (GameConfig::MIN_X + 1) - 1] != 0 || board[floor][cgh->getPos().getX() - (GameConfig::MIN_X + 1) + 1] != 0) //Available to leave ladder
@@ -1132,37 +1176,7 @@ void Game::run(bool saveMode)
 					{
 						if ((climb == 1 && laddermotionprev == GameConfig::UP) || ((climb == (ladderSteps - 1)) && laddermotionprev == GameConfig::DOWN)|| ((climb == (ladderSteps - 2)) && laddermotionprev == GameConfig::DOWN && mario.getHammer()!=GameConfig::STAY)) //in the same level of the floor
 						{
-							int floortoCheck = getFloor(mario.getPos().getY()) + 1;
-							if (floortoCheck >= 7) floortoCheck = 7;
-							if (laddermotionprev == GameConfig::UP) floortoCheck--;
-							char element = currLevel->getBoardValue(floortoCheck, (mario.getPos().getX()) - (GameConfig::MIN_X + 1));
-
-							if (laddermotionprev == GameConfig::UP)
-								gotoxy(mario.getPos().getX(), mario.getPos().getY() + 1);
-							else
-							{
-								if (climb == (ladderSteps - 1))
-									gotoxy(mario.getPos().getX(), mario.getPos().getY());
-								else
-									gotoxy(mario.getPos().getX(), mario.getPos().getY() - 1);
-							}
-								
-
-							if (element != 0)
-							{
-								switch (element)
-								{
-								case 1:
-									std::cout << '=';
-									break;
-								case 2:
-									std::cout << '>';
-									break;
-								case 3:
-									std::cout << '<';
-									break;
-								}
-							}
+							printFloorTrace(&mario, currLvl.getBoardPointer());
 						}
 						if (climb == 2 && laddermotionprev == GameConfig::DOWN)
 						{
@@ -1211,25 +1225,7 @@ void Game::run(bool saveMode)
 						}
 						else if (descent % GameConfig::FLOORDIFF == 1 && mario.getDir() != GameConfig::DOWN) //IN Case mario faces a brick while falling diagonally
 						{
-
-							int floortoCheck = getFloor(mario.getPos().getY()) + 1;
-							char element = currLevel->getBoardValue(floortoCheck, (mario.getPos().getX()) - (GameConfig::MIN_X + 1));
-							gotoxy(mario.getPos().getX(), mario.getPos().getY());
-							if (element != 0)
-							{
-								switch (element)
-								{
-								case 1:
-									std::cout << '=';
-									break;
-								case 2:
-									std::cout << '>';
-									break;
-								case 3:
-									std::cout << '<';
-									break;
-								}
-							}
+							printFloorTrace(&mario, currLvl.getBoardPointer());
 						}
 						if (descent != 0)
 							descent++;
@@ -1357,25 +1353,7 @@ void Game::run(bool saveMode)
 				}
 				if (mario.getPos().getY() >=GameConfig::MIN_Y + GameConfig::HEIGHT - 1) //Mario Fell Down
 				{
-					char element = currLevel->getBoardValue(0, (mario.getPos().getX()) - (GameConfig::MIN_X + 1));
-					gotoxy(mario.getPos().getX(), mario.getPos().getY());
-					switch (element)
-					{
-					    case 0:
-							std::cout << ' ';
-							break;
-						case 1:
-							std::cout << '=';
-							break;
-						case 2:
-							std::cout << '>';
-							break;
-						case 3:
-							std::cout << '<';
-							break;
-					}
-					
-
+					printFloorTrace(&mario, currLvl.getBoardPointer());
 					lives--;
 					if (saveMode)
 						reduceLivesSaveMode(result, gameCounter, lives);
@@ -1397,6 +1375,7 @@ void Game::run(bool saveMode)
 
 				if (!barrelsUpdateDirs(&barrels, currLevel->getBoardPointer(), &mario))//Set the exact direction for each barrel and if barrel exploded near mario - restart the game
 				{
+					printFloorTrace(&mario, currLvl.getBoardPointer());
 					lives--;
 					if (saveMode)
 						reduceLivesSaveMode(result, gameCounter, lives);
@@ -1414,6 +1393,7 @@ void Game::run(bool saveMode)
 
 				if (marioHitsBarrel(barrels, mario)||marioHitsGhost(activeghosts,mario))
 				{
+					printFloorTrace(&mario, currLvl.getBoardPointer());
 					//mario hit a barrel / ghost
 					lives--;
 					if (saveMode)
@@ -1423,6 +1403,7 @@ void Game::run(bool saveMode)
 
 				if (barrelsCheckHits(&barrels, mario)) //delete barrels that share same position (explosion)
 				{
+					printFloorTrace(&mario, currLvl.getBoardPointer());
 					//Mario is near an explosion
 					lives--;
 					if (saveMode)
@@ -1445,13 +1426,14 @@ void Game::run(bool saveMode)
 
 				if (marioHitsBarrel(barrels, mario) || marioHitsGhost(activeghosts, mario))
 				{
+					printFloorTrace(&mario, currLvl.getBoardPointer());
 					//mario hit a barrel / ghost
 					lives--;
 					if (saveMode)
 						reduceLivesSaveMode(result, gameCounter, lives);
 					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts(),true);
 				}
-				else if (mario.getPos() == hammer.getPos()&&hammer.getIsVisible()) //mario gets the hammer
+				if (mario.getPos() == hammer.getPos()&&hammer.getIsVisible()) //mario gets the hammer
 				{
 					hammer.setIsVisible(false);
 					mario.setHammer(mario.getDir());
@@ -1486,7 +1468,6 @@ void Game::run(bool saveMode)
 				}
 				
 				printScore(currLevel->getLegendPos());  // Print score
-
 				printMarioTrace(mario, climb);
 				
 				//Print ' ' after the barrels and ghosts

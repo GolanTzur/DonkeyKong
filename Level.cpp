@@ -6,9 +6,12 @@
 
 // Destructor to free allocated memory
 Level::~Level() {
-    delete[] ladders;
-    delete[]barrelsSets.intervalsBetweenBarrels;
-    delete[]barrelsSets.dirs;
+    //No need to delete ladders array since destructor is polymorphic
+
+    if(barrelsSets.intervalsBetweenBarrels!=nullptr)
+       delete[]barrelsSets.intervalsBetweenBarrels;
+    if(barrelsSets.dirs!=nullptr)
+        delete[]barrelsSets.dirs;
 
     for (Ghost* g : ghosts)
         delete g;

@@ -46,7 +46,7 @@ class Game
 	 int nearLadder(Player* player, Ladder lad[], int size, GameConfig::ARROWKEYS dir, int* ladderindex, int* climb);
 	 bool nearLadder(ClimbingGhost* clgh,const Ladder lad[],const int& size);
 	 bool barrelsCheckHits(vector<Barrel>* barrels,const Player& playerPosition);
-	 int barrelDistanceFloor(const Barrel& bar, int floor);
+	 int objectDistanceFloor(const MovableObject& bar, int floor);
 	 bool barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::WIDTH - 2], Player* mario);
 	 bool marioHitsBarrel(vector<Barrel>& barrels, const Player& mario);
 	 bool marioHitsGhost(vector<Ghost*>& ghosts, const Player& mario);
@@ -63,4 +63,5 @@ class Game
 	 void saveSeed(unsigned int seed, ofstream& file) { if (file) file << seed; }
 	 unsigned int setSeed() { return static_cast<unsigned int>(std::time(nullptr)); };
 	 void reduceLivesSaveMode(ofstream& resfile,const int& timePoint,const int& lives);
+	 void printFloorTrace(const MovableObject* obj, char board[][GameConfig::WIDTH - 2]);
 };
