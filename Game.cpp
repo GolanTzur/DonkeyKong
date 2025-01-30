@@ -1512,13 +1512,14 @@ void Game::run(bool saveMode)
 			if (saveMode) //Anyway close the steps file when level finished
 				steps.close();
 
+			   
 			if (escPressed == false)
 			{
 				if (finished)
 				{
 					if (saveMode)
 					{
-					   result << "Lives: " << lives << " Score: " << score;
+					   result << "Lives: " << lives << " Score: " << score<<" Finished: "<<gameCounter;
 					   result.close();
 				    }
 					gotoxy(0, GameConfig::HEIGHT +GameConfig::MIN_Y + 1);
@@ -1528,7 +1529,7 @@ void Game::run(bool saveMode)
 					currMapIndex++;
 					if (currMapIndex != alllevels.end())
 					{
-						gameCounter = 0;
+						
 						currLvl = currMapIndex->second;
 						std::cout << "Press any key to continue";
 						_getch();
@@ -1584,7 +1585,7 @@ void Game::run(bool saveMode)
 			}
 				
 
-			
+			gameCounter = 0;
 			
 		}
 	}

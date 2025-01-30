@@ -63,5 +63,4 @@ class Game
 	 void saveSeed(unsigned int seed, ofstream& file) { if (file) file << seed; }
 	 unsigned int setSeed() { return static_cast<unsigned int>(std::time(nullptr)); };
 	 void reduceLivesSaveMode(ofstream& resfile,const int& timePoint,const int& lives);
-	 //bool checkLadderTrace
 };
