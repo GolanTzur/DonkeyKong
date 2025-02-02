@@ -1144,7 +1144,11 @@ void Game::run(bool saveMode, bool loadMode, bool silentMode)
 					else
 					{
 						if (recordedIndex == recordedSteps.size()) //Game exited in the middle
+						{
+							escPressed = true;
+							exit = true;
 							break;
+						}
 						else //Not valid time steps
 						{
 							gotoxy(0, GameConfig::MIN_Y + GameConfig::HEIGHT + 1);
