@@ -864,13 +864,13 @@ bool Game::checkLifeLostPoint(int numlives, int ptOftime, const Result& resrecor
 	for (int i = 0;i < resrecords.lives.size();i++)
 	{
 		if (resrecords.lives[i].getX() == numlives)
-			return ptOftime == resrecords.lives[i].getY();
+			return abs(ptOftime - resrecords.lives[i].getY())<2;
 	}
 	return false;
 }
 bool Game::checkResults(int score, int time, int lives,bool passed,const Result& resrecords,const vector<Step>& steprecords)
 {
-	if (time != resrecords.timefinished) //the time finished is not the same as the last step
+	if (time != steprecords.size()) //the time finished is not the same as the last step
 		return false;
 
 	if (resrecords.passed)
@@ -879,7 +879,7 @@ bool Game::checkResults(int score, int time, int lives,bool passed,const Result&
 			return false;
 		if (score != resrecords.scorefinished) return false;
 		if (lives != resrecords.livesfinished) return false;
-
+		if (time != resrecords.timefinished) return false;
 		return true;
 	}
 	else //Failed
@@ -1396,7 +1396,14 @@ void Game::run(bool saveMode, bool loadMode, bool silentMode)
 								{
 									if (descent >= GameConfig::FLOORDIFF * 3) //Mario fell 3 floors or more
 									{
+							
 										lives--;
+										if (!silentMode)
+											printFloorTrace(&mario, currLvl.getBoardPointer());
+
+										if (saveMode)
+											reduceLivesSaveMode(result, gameCounter, lives);
+
 
 										if (loadMode || silentMode)
 										{
@@ -1410,6 +1417,8 @@ void Game::run(bool saveMode, bool loadMode, bool silentMode)
 												break;
 											}
 										}
+										if (lives == 0)
+											break;
 										
 										restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts(), !silentMode);
 									}
@@ -1569,11 +1578,15 @@ void Game::run(bool saveMode, bool loadMode, bool silentMode)
 				}
 				if (mario.getPos().getY() >= GameConfig::MIN_Y + GameConfig::HEIGHT - 1) //Mario Fell Down
 				{
+					lives--;
 					if (!silentMode)
-					{
 						printFloorTrace(&mario, currLvl.getBoardPointer());
-						lives--;
-					}
+					if (saveMode)
+						reduceLivesSaveMode(result, gameCounter, lives);
+						
+						if (lives == 0)
+							break;
+					
 					if (loadMode || silentMode)
 					{
 						if (!checkLifeLostPoint(lives, gameCounter, currentResult))
@@ -1586,8 +1599,7 @@ void Game::run(bool saveMode, bool loadMode, bool silentMode)
 							break;
 						}
 					}
-					if (saveMode)
-						reduceLivesSaveMode(result, gameCounter, lives);
+					
 					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts(), false);
 				}
 
@@ -1606,11 +1618,29 @@ void Game::run(bool saveMode, bool loadMode, bool silentMode)
 
 				if (!barrelsUpdateDirs(&barrels, currLevel->getBoardPointer(), &mario,silentMode))//Set the exact direction for each barrel and if barrel exploded near mario - restart the game
 				{
+					lives--;
 					if (!silentMode)
 					printFloorTrace(&mario, currLvl.getBoardPointer());
-					lives--;
+
 					if (saveMode)
 						reduceLivesSaveMode(result, gameCounter, lives);
+					
+					
+					if (loadMode || silentMode)
+					{
+						if (!checkLifeLostPoint(lives, gameCounter, currentResult))
+						{
+							gotoxy(0, GameConfig::MIN_Y + GameConfig::HEIGHT + 1);
+							cout << "in result file, no document of life lost, press any key to continue";
+							_getch();
+							escPressed = true;;
+							exit = true;
+							break;
+						}
+					}
+					if (lives == 0)
+						break;
+					
 					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts(), silentMode);
 				}
 
@@ -1625,10 +1655,14 @@ void Game::run(bool saveMode, bool loadMode, bool silentMode)
 
 				if (marioHitsBarrel(barrels, mario) || marioHitsGhost(activeghosts, mario))
 				{
-					if (!silentMode)
-					printFloorTrace(&mario, currLvl.getBoardPointer());
-					//mario hit a barrel / ghost
 					lives--;
+					if (!silentMode)
+						printFloorTrace(&mario, currLvl.getBoardPointer());
+
+					if (saveMode)
+						reduceLivesSaveMode(result, gameCounter, lives);
+
+
 					if (loadMode || silentMode)
 					{
 						if (!checkLifeLostPoint(lives, gameCounter, currentResult))
@@ -1641,17 +1675,22 @@ void Game::run(bool saveMode, bool loadMode, bool silentMode)
 							break;
 						}
 					}
-					if (saveMode)
-						reduceLivesSaveMode(result, gameCounter, lives);
+					if (lives == 0)
+						break;
+					
 					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts(), !silentMode);
 				}
 
 				if (barrelsCheckHits(&barrels, mario)) //delete barrels that share same position (explosion)
 				{
-					if (!silentMode)
-					printFloorTrace(&mario, currLvl.getBoardPointer());
-					//Mario is near an explosion
 					lives--;
+					if (!silentMode)
+						printFloorTrace(&mario, currLvl.getBoardPointer());
+
+					if (saveMode)
+						reduceLivesSaveMode(result, gameCounter, lives);
+
+
 					if (loadMode || silentMode)
 					{
 						if (!checkLifeLostPoint(lives, gameCounter, currentResult))
@@ -1664,8 +1703,9 @@ void Game::run(bool saveMode, bool loadMode, bool silentMode)
 							break;
 						}
 					}
-					if (saveMode)
-						reduceLivesSaveMode(result, gameCounter, lives);
+					if (lives == 0)
+						break;
+					
 					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts(),!silentMode);
 				}
 
@@ -1684,10 +1724,14 @@ void Game::run(bool saveMode, bool loadMode, bool silentMode)
 
 				if (marioHitsBarrel(barrels, mario) || marioHitsGhost(activeghosts, mario))
 				{
-					if (!silentMode)
-					printFloorTrace(&mario, currLvl.getBoardPointer());
-					//mario hit a barrel / ghost
 					lives--;
+					if (!silentMode)
+						printFloorTrace(&mario, currLvl.getBoardPointer());
+
+					if (saveMode)
+						reduceLivesSaveMode(result, gameCounter, lives);
+
+
 					if (loadMode || silentMode)
 					{
 						if (!checkLifeLostPoint(lives, gameCounter, currentResult))
@@ -1700,8 +1744,9 @@ void Game::run(bool saveMode, bool loadMode, bool silentMode)
 							break;
 						}
 					}
-					if (saveMode)
-						reduceLivesSaveMode(result, gameCounter, lives);
+					if (lives == 0)
+						break;
+					
 					restart(&mario, currLevel->getstartPosMario(), &barrels, &timetonextbarrel, &climb, &wPressed, &activeghosts, currLevel->getGhosts(), !silentMode);
 				}
 				if (mario.getPos() == hammer.getPos() && hammer.getIsVisible()) //mario gets the hammer
