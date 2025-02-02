@@ -36,10 +36,10 @@ void getMode(const vector<string>& args, bool& save, bool& load, bool& silent)
 int main(int argc,char* argv[])
 {
 	vector<string> args(argv, argv + argc); //Hold the command arguments with a vector of strings
-	bool saveMode,loadSilent,load;
+	bool saveMode,silentMode,loadMode;
 
 	try {
-		getMode(args, saveMode, load, loadSilent);
+		getMode(args, saveMode, loadMode, silentMode);
 	}
 	catch(tooManyArguments& tma)
 	{
@@ -52,9 +52,6 @@ int main(int argc,char* argv[])
 		return 0;
 	}
 	
-	if (saveMode)
-		Game().run(true);
-	else
-		Game().run(false);
+	Game().run(saveMode, loadMode, silentMode);
 	return 0;
 }

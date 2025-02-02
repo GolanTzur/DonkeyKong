@@ -19,8 +19,10 @@
 #include <cstdlib>   // For srand() and rand()
 
 #define INTERVAL 170
+#define LOADINTERVAL 100
 #define SECOND 1000
 #define ADDITIONALSCORE 100
+
 
 class Game
 {
@@ -39,7 +41,7 @@ class Game
 	 std::map<int, Level>::iterator lvlSelect(map<int, Level>& levels);
 	 void drawBorders();
 	 void printLives(int lives, const Point& legend);
-	 int showTime(const Point& legend, bool reset);
+	 int showTime(const Point& legend, bool silentMode, bool reset);
 	 int getFloor(int ycoor); //an index from 0 to 7
      char getSlope(Point currpos, char board[][GameConfig::WIDTH - 2]);
 	 bool LeaveLadder(const Point& currPos, const Ladder& lad, GameConfig::ARROWKEYS dir, char board[][GameConfig::WIDTH - 2]);
@@ -47,10 +49,10 @@ class Game
 	 bool nearLadder(ClimbingGhost* clgh,const Ladder lad[],const int& size);
 	 bool barrelsCheckHits(vector<Barrel>* barrels,const Player& playerPosition);
 	 int objectDistanceFloor(const MovableObject& bar, int floor);
-	 bool barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::WIDTH - 2], Player* mario);
+	 bool barrelsUpdateDirs(vector<Barrel>* barrels, char board[][GameConfig::WIDTH - 2], Player* mario, bool silentMode);
 	 bool marioHitsBarrel(vector<Barrel>& barrels, const Player& mario);
 	 bool marioHitsGhost(vector<Ghost*>& ghosts, const Player& mario);
-	 void ghostsChangeDir(vector<Ghost*> ghosts, char board[][GameConfig::WIDTH - 2],Ladder lad[],int size);
+	 void ghostsChangeDir(vector<Ghost*> ghosts, char board[][GameConfig::WIDTH - 2],Ladder lad[],int size, bool silentMode);
 	 GameConfig::ARROWKEYS ghostReachedEdge(Ghost* gh, char board[][GameConfig::WIDTH - 2]);
 	 void regularMoveGhost(Ghost* gh);
 	 bool outOfBounds(const Point& pos);
@@ -59,9 +61,12 @@ class Game
 	 void printMarioTrace(const Player& mario, const int& climb);
 	 void pauseGame(const Player& mario, const vector<Barrel>& barrels, const vector<Ghost*>& ghosts, const int& climb);
 	 void restart(Player* mario, Point marioStartPos, vector<Barrel>* barrels, int* timetonextbarrel, int* climb, int* jumpsecs, vector<Ghost*>* ghosts, const vector<Ghost*>& initposesghosts,bool printtrace);
-	 void run(bool savemode);
+	 void run(bool savemode, bool loadmode, bool silentmode);
 	 void saveSeed(unsigned int seed, ofstream& file) { if (file) file << seed; }
 	 unsigned int setSeed() { return static_cast<unsigned int>(std::time(nullptr)); };
 	 void reduceLivesSaveMode(ofstream& resfile,const int& timePoint,const int& lives);
 	 void printFloorTrace(const MovableObject* obj, char board[][GameConfig::WIDTH - 2]);
+	 void nextLevelLoadMode(const std::map<int, Level>& map, std::map<int, Level>::iterator& currPos, ifstream& stepsInput, ifstream& resultInput);
+	 bool checkLifeLostPoint(int numlives, int ptOftime, const Result& resrecords);
+	 bool checkResults(int score, int time, int lives, bool passed ,const Result& resrecords, const vector<Step>& steprecords);
 };
